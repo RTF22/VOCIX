@@ -43,7 +43,7 @@ class TextMEApp:
 
         self._recorder = AudioRecorder(self._config)
         self._stt = WhisperSTT(self._config)
-        self._injector = TextInjector()
+        self._injector = TextInjector(self._config)
 
         # Prozessoren
         self._processors: dict[str, TextProcessor] = {

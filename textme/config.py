@@ -34,5 +34,18 @@ class Config:
     anthropic_api_key: str = field(default_factory=lambda: os.getenv("ANTHROPIC_API_KEY", ""))
     anthropic_model: str = "claude-sonnet-4-20250514"
 
+    # RDP / Remote Desktop
+    rdp_mode: bool = field(default_factory=lambda: os.getenv("DICTUM_RDP_MODE", "").lower() in ("1", "true", "yes"))
+    clipboard_delay: float = 0.05   # Sekunden — in RDP auf 0.15-0.3 erhöhen
+    paste_delay: float = 0.1        # Sekunden — in RDP auf 0.3-0.5 erhöhen
+
     # UI
     overlay_display_seconds: float = 1.5
+
+    def __post_init__(self):
+        if self.rdp_mode:
+            # Längere Delays für RDP-Clipboard-Synchronisation
+            if self.clipboard_delay < 0.15:
+                self.clipboard_delay = 0.2
+            if self.paste_delay < 0.3:
+                self.paste_delay = 0.4
