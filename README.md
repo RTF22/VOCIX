@@ -1,6 +1,6 @@
-# TextME — Sprachdiktion für Windows 11
+# DICTUM — DICtation with Text Understanding & Modification
 
-Lokale Sprachdiktion-App mit globalem Hotkey. Sprache aufnehmen, transkribieren, transformieren und systemweit an der Cursorposition einfügen — in jeder Anwendung (Browser, Word, Outlook, IDEs, etc.).
+Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen, transkribieren, intelligent transformieren und systemweit an der Cursorposition einfügen — in jeder Anwendung (Browser, Word, Outlook, IDEs, etc.).
 
 ## Features
 
@@ -25,8 +25,8 @@ Lokale Sprachdiktion-App mit globalem Hotkey. Sprache aufnehmen, transkribieren,
 ### 1. Repository klonen oder herunterladen
 
 ```bash
-git clone <repo-url>
-cd TextME
+git clone https://github.com/RTF22/DICTUM.git
+cd DICTUM
 ```
 
 ### 2. Virtuelle Umgebung erstellen (empfohlen)
@@ -66,7 +66,7 @@ python -m textme.main
 
 Die App startet im System Tray (Infobereich der Taskleiste). Ein farbiges Icon zeigt den aktuellen Modus an.
 
-> **Hinweis:** Für Hotkey-Erkennung in Anwendungen mit erhöhten Rechten (z.B. Task-Manager) muss TextME ebenfalls als Administrator gestartet werden.
+> **Hinweis:** Für Hotkey-Erkennung in Anwendungen mit erhöhten Rechten (z.B. Task-Manager) muss DICTUM ebenfalls als Administrator gestartet werden.
 
 ## Bedienung
 
