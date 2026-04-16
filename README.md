@@ -125,4 +125,4 @@ textme/
 
 ## Lizenz
 
-Privates Projekt.
+[MIT License](LICENSE) — frei nutzbar, auch kommerziell. Keine Gewährleistung.

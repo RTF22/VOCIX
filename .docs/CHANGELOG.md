@@ -2,6 +2,11 @@
 
 Alle wesentlichen Änderungen an DICTUM werden in dieser Datei dokumentiert.
 
+## [0.5.0] — 2026-04-16
+
+### Hinzugefügt
+- **MIT License** — Open-Source-Lizenz mit Haftungsausschluss
+
 ## [0.4.0] — 2026-04-16
 
 ### Hinzugefügt
