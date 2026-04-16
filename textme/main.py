@@ -1,10 +1,11 @@
-"""TextME — Sprachdiktion für Windows 11.
+"""DICTUM — DICtation with Text Understanding & Modification.
 
-Push-to-Talk: Ctrl+Shift+Space halten → sprechen → loslassen.
+Push-to-Talk: Rechte Strg halten → sprechen → loslassen.
 Moduswechsel: Ctrl+Shift+1 (Clean) / 2 (Business) / 3 (Rage).
 """
 
 import logging
+import logging.handlers
 import sys
 import threading
 
@@ -21,23 +22,61 @@ from textme.stt.whisper_stt import WhisperSTT
 from textme.ui.overlay import StatusOverlay
 from textme.ui.tray import TrayApp
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    datefmt="%H:%M:%S",
-)
+_LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+def _setup_logging(config: Config) -> None:
+    """Konfiguriert Logging auf Console + Logfile mit konfigurierbarem Level."""
+    level = getattr(logging, config.log_level, logging.INFO)
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+
+    # Console-Handler
+    console = logging.StreamHandler(sys.stdout)
+    console.setLevel(level)
+    console.setFormatter(logging.Formatter(_LOG_FORMAT, datefmt=_LOG_DATE_FORMAT))
+    root_logger.addHandler(console)
+
+    # Datei-Handler (RotatingFile: max 5 MB, 3 Backups)
+    try:
+        file_handler = logging.handlers.RotatingFileHandler(
+            config.log_file,
+            maxBytes=5 * 1024 * 1024,
+            backupCount=3,
+            encoding="utf-8",
+        )
+        file_handler.setLevel(level)
+        file_handler.setFormatter(logging.Formatter(_LOG_FORMAT, datefmt=_LOG_DATE_FORMAT))
+        root_logger.addHandler(file_handler)
+    except OSError as e:
+        root_logger.warning("Logfile konnte nicht erstellt werden: %s", e)
+
+
 logger = logging.getLogger(__name__)
 
 
 class TextMEApp:
     def __init__(self):
         self._config = Config()
+        _setup_logging(self._config)
+
         self._current_mode = self._config.default_mode
         self._running = True
         self._processing = False
 
+        logger.info("=" * 50)
+        logger.info("DICTUM v0.5.0 startet...")
+        logger.info("Log-Level: %s | Logfile: %s", self._config.log_level, self._config.log_file)
+        logger.info("Hotkey (PTT): %s", self._config.hotkey_record)
+        logger.info("Standard-Modus: %s", self._config.default_mode)
+        logger.info("API-Key: %s", "gesetzt" if self._config.anthropic_api_key else "NICHT gesetzt (Modus B/C → Fallback auf A)")
+        if self._config.rdp_mode:
+            logger.info("RDP-Modus: aktiv")
+        logger.info("=" * 50)
+
         # Komponenten
-        logger.info("Initialisiere TextME...")
         self._overlay = StatusOverlay(self._config)
         self._overlay.show("Lade Whisper-Modell...", "processing")
 
@@ -59,8 +98,8 @@ class TextMEApp:
             on_quit=self._quit,
         )
 
-        self._overlay.show_temporary("TextME bereit", "done")
-        logger.info("TextME bereit — Modus: %s", self._current_mode)
+        self._overlay.show_temporary("DICTUM bereit", "done")
+        logger.info("DICTUM bereit — Modus: %s", self._current_mode)
 
     def _set_mode(self, mode: str) -> None:
         self._current_mode = mode
@@ -72,16 +111,20 @@ class TextMEApp:
 
     def _on_record_start(self) -> None:
         if self._processing:
+            logger.debug("Aufnahme ignoriert — Pipeline läuft noch")
             return
         try:
             self._recorder.start()
             self._overlay.show("Aufnahme...", "recording")
+            logger.info(">> Aufnahme gestartet (Hotkey gedrückt)")
         except RuntimeError as e:
+            logger.error("Aufnahme fehlgeschlagen: %s", e)
             self._overlay.show_temporary(str(e), "error")
 
     def _on_record_stop(self) -> None:
         if not self._recorder.is_recording:
             return
+        logger.info(">> Aufnahme beendet (Hotkey losgelassen)")
         # Pipeline in separatem Thread, damit Hotkey-Handler nicht blockiert
         threading.Thread(target=self._process_pipeline, daemon=True).start()
 
@@ -90,15 +133,22 @@ class TextMEApp:
         try:
             audio = self._recorder.stop()
             if audio is None:
+                logger.warning("Keine verwertbare Aufnahme (zu kurz oder zu leise)")
                 self._overlay.show_temporary("Keine Sprache erkannt", "error")
                 return
+
+            duration = len(audio) / self._config.sample_rate
+            logger.info("   Audio: %.1fs aufgenommen", duration)
 
             # STT
             self._overlay.show("Transkribiere...", "processing")
             raw_text = self._stt.transcribe(audio)
             if not raw_text.strip():
+                logger.warning("STT lieferte leeren Text")
                 self._overlay.show_temporary("Kein Text erkannt", "error")
                 return
+
+            logger.info("   Rohtext: \"%s\"", raw_text[:100] + ("..." if len(raw_text) > 100 else ""))
 
             # Transformation
             processor = self._processors.get(self._current_mode, self._processors["clean"])
@@ -106,12 +156,17 @@ class TextMEApp:
             processed_text = processor.process(raw_text)
 
             if not processed_text.strip():
+                logger.warning("Prozessor lieferte leeres Ergebnis")
                 self._overlay.show_temporary("Leeres Ergebnis", "error")
                 return
+
+            logger.info("   Ergebnis (%s): \"%s\"", processor.name,
+                        processed_text[:100] + ("..." if len(processed_text) > 100 else ""))
 
             # Einfügen
             self._injector.inject(processed_text)
             self._overlay.show_temporary("Eingefügt", "done")
+            logger.info("   Text eingefügt (%d Zeichen)", len(processed_text))
 
         except Exception as e:
             logger.error("Pipeline-Fehler: %s", e, exc_info=True)
@@ -152,7 +207,7 @@ class TextMEApp:
                      self._config.hotkey_mode_c)
 
     def _quit(self) -> None:
-        logger.info("TextME wird beendet...")
+        logger.info("DICTUM wird beendet...")
         self._running = False
         self._overlay.destroy()
         keyboard.unhook_all()
@@ -161,7 +216,7 @@ class TextMEApp:
         self._tray.start()
         self._register_hotkeys()
 
-        logger.info("TextME läuft. Zum Beenden: Tray-Icon → Beenden")
+        logger.info("DICTUM läuft. Zum Beenden: Tray-Icon → Beenden")
         try:
             keyboard.wait()  # Blockiert bis alle Hooks entfernt werden
         except KeyboardInterrupt:

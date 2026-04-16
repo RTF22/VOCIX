@@ -1,11 +1,16 @@
 import logging
+import os
 import threading
+import webbrowser
 from typing import Callable
 
 from PIL import Image, ImageDraw, ImageFont
 from pystray import Icon, Menu, MenuItem
 
 logger = logging.getLogger(__name__)
+
+_VERSION = "0.5.0"
+_REPO_URL = "https://github.com/RTF22/DICTUM"
 
 _MODE_COLORS = {
     "clean": (46, 204, 113),      # Grün
@@ -107,8 +112,35 @@ class TrayApp:
                 )
             )
         items.append(Menu.SEPARATOR)
+        items.append(MenuItem("Info", self._show_about))
         items.append(MenuItem("Beenden", self._quit))
         return Menu(*items)
+
+    @staticmethod
+    def _show_about() -> None:
+        """Zeigt ein About-Fenster mit Versionsinformation und Repo-Link."""
+        import tkinter as tk
+        from tkinter import messagebox
+
+        # Temporäres verstecktes Root-Fenster für den Dialog
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+
+        result = messagebox.askquestion(
+            "DICTUM — Info",
+            f"DICTUM v{_VERSION}\n"
+            f"DICtation with Text Understanding & Modification\n\n"
+            f"Lokale Sprachdiktion fuer Windows\n"
+            f"mit intelligentem Text-Processing.\n\n"
+            f"Repository:\n{_REPO_URL}\n\n"
+            f"Im Browser oeffnen?",
+            icon="info",
+        )
+        if result == "yes":
+            webbrowser.open(_REPO_URL)
+
+        root.destroy()
 
     def _switch_mode(self, mode: str) -> None:
         self._current_mode = mode
@@ -121,7 +153,7 @@ class TrayApp:
             color = _MODE_COLORS.get(self._current_mode, (128, 128, 128))
             self._icon.icon = _create_icon_image(color, self._current_mode)
             self._icon.menu = self._build_menu()
-            self._icon.title = f"TextME — {_MODE_LABELS.get(self._current_mode, self._current_mode)}"
+            self._icon.title = f"DICTUM — {_MODE_LABELS.get(self._current_mode, self._current_mode)}"
 
     def _quit(self) -> None:
         self._on_quit()
@@ -133,7 +165,7 @@ class TrayApp:
         self._icon = Icon(
             name="TextME",
             icon=_create_icon_image(color, self._current_mode),
-            title=f"TextME — {_MODE_LABELS.get(self._current_mode, self._current_mode)}",
+            title=f"DICTUM — {_MODE_LABELS.get(self._current_mode, self._current_mode)}",
             menu=self._build_menu(),
         )
         # pystray.Icon.run() blockiert — in eigenem Thread starten

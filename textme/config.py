@@ -55,6 +55,12 @@ class Config:
     clipboard_delay: float = 0.05   # Sekunden — in RDP auf 0.15-0.3 erhöhen
     paste_delay: float = 0.1        # Sekunden — in RDP auf 0.3-0.5 erhöhen
 
+    # Logging
+    log_level: str = field(default_factory=lambda: os.getenv("DICTUM_LOG_LEVEL", "INFO").upper())
+    log_file: str = field(default_factory=lambda: os.getenv(
+        "DICTUM_LOG_FILE", str(APP_DIR / "dictum.log")
+    ))
+
     # UI
     overlay_display_seconds: float = 1.5
 

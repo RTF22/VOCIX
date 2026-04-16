@@ -32,7 +32,7 @@ class StatusOverlay:
 
     def _run(self) -> None:
         self._root = tk.Tk()
-        self._root.title("TextME")
+        self._root.title("DICTUM")
         self._root.overrideredirect(True)
         self._root.attributes("-topmost", True)
         self._root.attributes("-alpha", 0.85)
