@@ -21,11 +21,12 @@ class Config:
     silence_threshold: float = 0.01  # RMS unter diesem Wert = Stille
     min_duration: float = 0.5        # Mindestaufnahmelänge in Sekunden
 
-    # Hotkeys
-    hotkey_record: str = "ctrl+shift+space"
-    hotkey_mode_a: str = "ctrl+shift+1"
-    hotkey_mode_b: str = "ctrl+shift+2"
-    hotkey_mode_c: str = "ctrl+shift+3"
+    # Hotkeys (konfigurierbar via .env — Werte wie von der 'keyboard'-Library erwartet)
+    # Einzeltaste oder Kombination, z.B.: "right ctrl", "ctrl+shift+space", "f9"
+    hotkey_record: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_RECORD", "right ctrl"))
+    hotkey_mode_a: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_A", "ctrl+shift+1"))
+    hotkey_mode_b: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_B", "ctrl+shift+2"))
+    hotkey_mode_c: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_C", "ctrl+shift+3"))
 
     # Modus: "clean", "business", "rage"
     default_mode: str = "clean"

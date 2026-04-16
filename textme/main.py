@@ -120,27 +120,33 @@ class TextMEApp:
             self._processing = False
 
     def _register_hotkeys(self) -> None:
-        # Push-to-Talk: Ctrl+Shift+Space
-        keyboard.on_press_key(
-            "space",
-            lambda e: self._on_record_start()
-            if keyboard.is_pressed("ctrl") and keyboard.is_pressed("shift")
-            else None,
-            suppress=False,
-        )
-        keyboard.on_release_key(
-            "space",
-            lambda e: self._on_record_stop(),
-            suppress=False,
-        )
+        record_key = self._config.hotkey_record
+
+        # Push-to-Talk: Erkennung ob Einzeltaste oder Kombination
+        # Einzeltaste (z.B. "right ctrl", "f9"): on_press/on_release direkt
+        # Kombination (z.B. "ctrl+shift+space"): letzte Taste als Trigger, Rest als Modifier
+        if "+" in record_key:
+            parts = [p.strip() for p in record_key.split("+")]
+            trigger_key = parts[-1]
+            modifier_keys = parts[:-1]
+
+            def _check_and_start(e):
+                if all(keyboard.is_pressed(mod) for mod in modifier_keys):
+                    self._on_record_start()
+
+            keyboard.on_press_key(trigger_key, _check_and_start, suppress=False)
+            keyboard.on_release_key(trigger_key, lambda e: self._on_record_stop(), suppress=False)
+        else:
+            keyboard.on_press_key(record_key, lambda e: self._on_record_start(), suppress=False)
+            keyboard.on_release_key(record_key, lambda e: self._on_record_stop(), suppress=False)
 
         # Moduswechsel
         keyboard.add_hotkey(self._config.hotkey_mode_a, lambda: self._set_mode("clean"))
         keyboard.add_hotkey(self._config.hotkey_mode_b, lambda: self._set_mode("business"))
         keyboard.add_hotkey(self._config.hotkey_mode_c, lambda: self._set_mode("rage"))
 
-        logger.info("Hotkeys registriert: %s (PTT), %s/%s/%s (Modi)",
-                     self._config.hotkey_record,
+        logger.info("Hotkeys registriert: '%s' (PTT), %s/%s/%s (Modi)",
+                     record_key,
                      self._config.hotkey_mode_a,
                      self._config.hotkey_mode_b,
                      self._config.hotkey_mode_c)
