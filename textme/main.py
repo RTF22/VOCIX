@@ -6,6 +6,7 @@ Moduswechsel: Ctrl+Shift+1 (Clean) / 2 (Business) / 3 (Rage).
 
 import logging
 import logging.handlers
+import os
 import sys
 import threading
 
@@ -211,6 +212,7 @@ class TextMEApp:
         self._running = False
         self._overlay.destroy()
         keyboard.unhook_all()
+        os._exit(0)
 
     def run(self) -> None:
         self._tray.start()

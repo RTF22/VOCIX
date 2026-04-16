@@ -6,7 +6,8 @@ import importlib
 
 block_cipher = None
 
-# faster-whisper und CTranslate2 haben native DLLs die mitgebundelt werden müssen
+# faster-whisper Assets (VAD-Modell) und CTranslate2 DLLs müssen mitgebundelt werden
+faster_whisper_path = os.path.dirname(importlib.import_module("faster_whisper").__file__)
 ctranslate2_path = os.path.dirname(importlib.import_module("ctranslate2").__file__)
 
 a = Analysis(
@@ -15,6 +16,7 @@ a = Analysis(
     binaries=[],
     datas=[
         (".env.example", "."),
+        (os.path.join(faster_whisper_path, "assets"), "faster_whisper/assets"),
     ],
     hiddenimports=[
         "faster_whisper",
