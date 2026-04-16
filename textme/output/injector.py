@@ -46,8 +46,11 @@ class TextInjector:
             # Ctrl+V senden
             keyboard.send("ctrl+v")
             # Pause damit die Anwendung den Paste verarbeiten kann
-            time.sleep(self._paste_delay)
-            logger.info("Text eingefügt (%d Zeichen)", len(text))
+            # Bei längeren Texten brauchen manche Apps mehr Zeit
+            extra_delay = len(text) / 5000  # ~0.2s pro 1000 Zeichen
+            time.sleep(self._paste_delay + extra_delay)
+            logger.info("Text eingefügt (%d Zeichen, paste_delay=%.2fs)",
+                        len(text), self._paste_delay + extra_delay)
         except Exception as e:
             logger.error("Fehler beim Einfügen: %s", e)
             raise
