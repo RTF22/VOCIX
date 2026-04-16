@@ -11,4 +11,5 @@ venv/
 *.log
 *.spec.bak
 models/
+CLAUDE.md
 .claude/
