@@ -4,8 +4,8 @@ from pathlib import Path
 import numpy as np
 from faster_whisper import WhisperModel
 
-from textme.config import Config
-from textme.stt.base import STTEngine
+from dictum.config import Config
+from dictum.stt.base import STTEngine
 
 logger = logging.getLogger(__name__)
 

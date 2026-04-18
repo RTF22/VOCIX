@@ -4,7 +4,7 @@ import threading
 import numpy as np
 import sounddevice as sd
 
-from textme.config import Config
+from dictum.config import Config
 
 logger = logging.getLogger(__name__)
 

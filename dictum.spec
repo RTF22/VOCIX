@@ -11,7 +11,7 @@ faster_whisper_path = os.path.dirname(importlib.import_module("faster_whisper").
 ctranslate2_path = os.path.dirname(importlib.import_module("ctranslate2").__file__)
 
 a = Analysis(
-    ["textme/main.py"],
+    ["dictum/main.py"],
     pathex=[],
     binaries=[],
     datas=[

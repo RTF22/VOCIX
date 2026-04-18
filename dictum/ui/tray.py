@@ -7,7 +7,7 @@ from typing import Callable
 from PIL import Image, ImageDraw, ImageFont
 from pystray import Icon, Menu, MenuItem
 
-from textme import __version__
+from dictum import __version__
 
 logger = logging.getLogger(__name__)
 _REPO_URL = "https://github.com/RTF22/DICTUM"
@@ -163,7 +163,7 @@ class TrayApp:
     def start(self) -> None:
         color = _MODE_COLORS.get(self._current_mode, (128, 128, 128))
         self._icon = Icon(
-            name="TextME",
+            name="DICTUM",
             icon=_create_icon_image(color, self._current_mode),
             title=f"DICTUM — {_MODE_LABELS.get(self._current_mode, self._current_mode)}",
             menu=self._build_menu(),

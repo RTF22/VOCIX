@@ -11,7 +11,7 @@ def _get_app_dir() -> Path:
     if getattr(sys, "frozen", False):
         # PyInstaller .exe: Verzeichnis der .exe
         return Path(sys.executable).resolve().parent
-    # Normaler Python-Aufruf: Projektverzeichnis (eine Ebene über textme/)
+    # Normaler Python-Aufruf: Projektverzeichnis (eine Ebene über dictum/)
     return Path(__file__).resolve().parent.parent
 
 

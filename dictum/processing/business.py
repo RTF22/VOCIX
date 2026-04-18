@@ -1,27 +1,26 @@
 import logging
 
-from textme.config import Config
-from textme.processing.base import TextProcessor
-from textme.processing.clean import CleanProcessor
+from dictum.config import Config
+from dictum.processing.base import TextProcessor
+from dictum.processing.clean import CleanProcessor
 
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = """\
-Du bist ein Deeskalations-Assistent.
+Du bist ein professioneller Textassistent für geschäftliche Kommunikation.
 
 Deine Aufgabe:
-- Du erhältst Text, der möglicherweise aggressiv, unhöflich oder emotional aufgeladen ist.
-- Wandle den Text in eine höfliche, respektvolle und sachliche Formulierung um.
-- Die URSPRÜNGLICHE BEDEUTUNG und alle Sachargumente MÜSSEN vollständig erhalten bleiben.
-- Entferne Beleidigungen, Schimpfwörter und aggressive Formulierungen.
-- Ersetze sie durch sachliche, konstruktive Alternativen.
-- Der Ton soll bestimmt aber höflich sein — nicht unterwürfig.
+- Wandle den gesprochenen Text in professionelle, formelle Schriftsprache um.
+- Der Text soll für E-Mails, Briefe oder geschäftliche Dokumente geeignet sein.
+- Verbessere Struktur, Grammatik und Tonalität.
+- Entferne Füllwörter und umgangssprachliche Ausdrücke.
+- Behalte die ursprüngliche Bedeutung exakt bei.
 - Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.
 - Antworte in derselben Sprache wie der Eingabetext."""
 
 
-class RageProcessor(TextProcessor):
-    """Modus C: Deeskalation — aggressiv → höflich (Claude API)."""
+class BusinessProcessor(TextProcessor):
+    """Modus B: Professionelle Geschäftssprache via Claude API."""
 
     def __init__(self, config: Config):
         self._config = config
@@ -38,18 +37,18 @@ class RageProcessor(TextProcessor):
             except ImportError:
                 logger.warning("anthropic-Paket nicht installiert, Fallback auf Clean-Modus")
         else:
-            logger.warning("Kein ANTHROPIC_API_KEY gesetzt, Rage-Modus nutzt Clean-Fallback")
+            logger.warning("Kein ANTHROPIC_API_KEY gesetzt, Business-Modus nutzt Clean-Fallback")
 
     @property
     def name(self) -> str:
-        return "Rage"
+        return "Business"
 
     def process(self, text: str) -> str:
         if not text.strip():
             return text
 
         if self._client is None:
-            logger.info("Rage-Fallback auf Clean-Modus")
+            logger.info("Business-Fallback auf Clean-Modus")
             return self._fallback.process(text)
 
         try:
@@ -60,7 +59,7 @@ class RageProcessor(TextProcessor):
                 messages=[{"role": "user", "content": text}],
             )
             result = response.content[0].text.strip()
-            logger.info("Rage-Transformation erfolgreich")
+            logger.info("Business-Transformation erfolgreich")
             return result
         except Exception as e:
             logger.error("Claude API Fehler: %s — Fallback auf Clean", e)

@@ -11,17 +11,17 @@ import threading
 
 import keyboard
 
-from textme import __version__
-from textme.audio.recorder import AudioRecorder
-from textme.config import Config
-from textme.output.injector import TextInjector
-from textme.processing.base import TextProcessor
-from textme.processing.business import BusinessProcessor
-from textme.processing.clean import CleanProcessor
-from textme.processing.rage import RageProcessor
-from textme.stt.whisper_stt import WhisperSTT
-from textme.ui.overlay import StatusOverlay
-from textme.ui.tray import TrayApp
+from dictum import __version__
+from dictum.audio.recorder import AudioRecorder
+from dictum.config import Config
+from dictum.output.injector import TextInjector
+from dictum.processing.base import TextProcessor
+from dictum.processing.business import BusinessProcessor
+from dictum.processing.clean import CleanProcessor
+from dictum.processing.rage import RageProcessor
+from dictum.stt.whisper_stt import WhisperSTT
+from dictum.ui.overlay import StatusOverlay
+from dictum.ui.tray import TrayApp
 
 _LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 _LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -58,7 +58,7 @@ def _setup_logging(config: Config) -> None:
 logger = logging.getLogger(__name__)
 
 
-class TextMEApp:
+class DictumApp:
     def __init__(self):
         self._config = Config()
         _setup_logging(self._config)
@@ -246,7 +246,7 @@ class TextMEApp:
 
 
 def main():
-    app = TextMEApp()
+    app = DictumApp()
     app.run()
 
 

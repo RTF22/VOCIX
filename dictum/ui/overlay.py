@@ -2,7 +2,7 @@ import logging
 import threading
 import tkinter as tk
 
-from textme.config import Config
+from dictum.config import Config
 
 logger = logging.getLogger(__name__)
 

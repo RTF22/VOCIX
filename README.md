@@ -43,7 +43,7 @@ python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env
-python -m textme.main
+python -m dictum.main
 ```
 
 ### .exe selbst bauen
@@ -110,7 +110,7 @@ Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
 ## Projektstruktur
 
 ```
-textme/
+dictum/
 ├── main.py              # Entry Point, Orchestrierung
 ├── config.py            # Einstellungen (.env, Pfade, Hotkeys)
 ├── audio/recorder.py    # Mikrofon-Aufnahme (sounddevice)

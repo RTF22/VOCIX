@@ -4,7 +4,7 @@ import time
 import keyboard
 import pyperclip
 
-from textme.config import Config
+from dictum.config import Config
 
 logger = logging.getLogger(__name__)
 

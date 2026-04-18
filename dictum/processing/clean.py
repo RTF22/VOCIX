@@ -1,6 +1,6 @@
 import re
 
-from textme.processing.base import TextProcessor
+from dictum.processing.base import TextProcessor
 
 # Deutsche Füllwörter und Hesitationslaute.
 # Reihenfolge: Mehrwort-Phrasen vor Einzelwörtern — Python's re.sub verwendet
