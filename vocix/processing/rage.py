@@ -1,8 +1,8 @@
 import logging
 
-from dictum.config import Config
-from dictum.processing.base import TextProcessor
-from dictum.processing.clean import CleanProcessor
+from vocix.config import Config
+from vocix.processing.base import TextProcessor
+from vocix.processing.clean import CleanProcessor
 
 logger = logging.getLogger(__name__)
 

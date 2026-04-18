@@ -1,6 +1,6 @@
 """Auto-Update-Check gegen GitHub Releases.
 
-Prüft das neueste stabile Release im Repo RTF22/DICTUM und meldet ein
+Prüft das neueste stabile Release im Repo RTF22/VOCIX und meldet ein
 UpdateInfo zurück, wenn die verfügbare Version höher ist als die laufende
 und nicht explizit vom User übersprungen wurde.
 """
@@ -14,7 +14,7 @@ from urllib import error, request
 
 logger = logging.getLogger(__name__)
 
-_RELEASES_API = "https://api.github.com/repos/RTF22/DICTUM/releases/latest"
+_RELEASES_API = "https://api.github.com/repos/RTF22/VOCIX/releases/latest"
 _REQUEST_TIMEOUT = 5.0
 
 
@@ -41,7 +41,7 @@ def _fetch_latest_release(current_version: str) -> dict | None:
     req = request.Request(
         _RELEASES_API,
         headers={
-            "User-Agent": f"TextME/{current_version}",
+            "User-Agent": f"VOCIX/{current_version}",
             "Accept": "application/vnd.github+json",
         },
     )

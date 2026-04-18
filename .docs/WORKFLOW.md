@@ -55,7 +55,7 @@ Pro Issue genau dieser Ablauf:
 
 Nach jeweils einem zusammenhängenden Issue-Block:
 
-- **Versions-Bump** in `dictum/__init__.py` (Patch-Stelle, z.B. `0.8.1 → 0.8.2`).
+- **Versions-Bump** in `vocix/__init__.py` (Patch-Stelle, z.B. `0.8.1 → 0.8.2`).
 - **CHANGELOG-Eintrag** mit neuem `[0.8.2]`-Abschnitt, pro Issue ein Stichpunkt mit Issue-Nummer in Klammern.
 - **ADR** falls die Umsetzung eine grundsätzliche Entscheidung enthält (z.B. Clipboard-Grenze, Package-Name).
 - **`git push origin main`** — GitHub schließt jedes Issue mit `Closes #N`-Referenz automatisch; keine manuelle Nachbearbeitung nötig.
@@ -65,6 +65,6 @@ Nach jeweils einem zusammenhängenden Issue-Block:
 - **Jeder Commit ist unabhängig review- und revertierbar** — wenn später ein Fix Probleme macht, betrifft das nur den einen Commit. Batch-Commits verwischen Ursachen.
 - **GitHub-Issues als Ziel-Liste** — der Haupt-Agent muss nicht raten, was zu tun ist, sondern arbeitet eine gepflegte Liste ab. Der Nutzer sieht parallel in GitHub, was läuft und was offen ist.
 - **Entscheidungsgates halten den Menschen im Loop** — die KI schlägt vor, der Mensch entscheidet. Die Qualität der Einzelentscheidung ist der Hebel, nicht die Implementierungsgeschwindigkeit.
-- **Referenz-Case (2026-04-18, DICTUM v0.8.0 → v0.8.2):** ein Review-Durchlauf produzierte 11 Issues, Abarbeitung in zwei Phasen → 10 Issue-Fixes + 2 Release-Commits + 2 neue ADRs, insgesamt 14 Commits, einmal `git push`. Alle 10 Issues sind durch die Commit-Referenzen automatisch geschlossen.
+- **Referenz-Case (2026-04-18, VOCIX v0.8.0 → v0.8.2):** ein Review-Durchlauf produzierte 11 Issues, Abarbeitung in zwei Phasen → 10 Issue-Fixes + 2 Release-Commits + 2 neue ADRs, insgesamt 14 Commits, einmal `git push`. Alle 10 Issues sind durch die Commit-Referenzen automatisch geschlossen.
 
 ---

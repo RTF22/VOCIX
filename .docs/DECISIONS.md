@@ -27,7 +27,7 @@ Erneute Prüfung, ob die Clipboard-Methode durch eine direkte Schreibmethode ers
 | `WM_CHAR` via `SendMessage` | alle | stark appabhängig | schnell | moderne TSF-basierte Eingabefelder ignorieren WM_CHAR |
 | UI Automation `TextPattern` | alle | nur wenn App TextPattern vollständig implementiert | langsam (Element-Lookup pro Insert) | Electron/Web-Apps oft unvollständig |
 
-**`SendInput` mit `KEYEVENTF_UNICODE`:** Kann Umlaute — der alte Hinweis "gleiche Unicode-Probleme" war fachlich ungenau. Echte Einschränkungen: (a) scheitert in DirectX-Spielen, die Input auf Scancode-Ebene erwarten, (b) scheitert in UAC-elevated Fenstern, wenn DICTUM selbst nicht elevated läuft, (c) sendet Zeichen einzeln → bei 2000 Zeichen deutlich langsamer als ein Clipboard-Paste, (d) dokumentierter OS-Buffering-Bug: bei Unicode-Eingaben wird u.U. nur das erste Zeichen verarbeitet bis Tastatur/Maus bewegt wird, (e) harter 5000-Zeichen-Limit der API.
+**`SendInput` mit `KEYEVENTF_UNICODE`:** Kann Umlaute — der alte Hinweis "gleiche Unicode-Probleme" war fachlich ungenau. Echte Einschränkungen: (a) scheitert in DirectX-Spielen, die Input auf Scancode-Ebene erwarten, (b) scheitert in UAC-elevated Fenstern, wenn VOCIX selbst nicht elevated läuft, (c) sendet Zeichen einzeln → bei 2000 Zeichen deutlich langsamer als ein Clipboard-Paste, (d) dokumentierter OS-Buffering-Bug: bei Unicode-Eingaben wird u.U. nur das erste Zeichen verarbeitet bis Tastatur/Maus bewegt wird, (e) harter 5000-Zeichen-Limit der API.
 
 **`WM_CHAR` via `SendMessage`:** Offiziell durch das Text Services Framework (TSF) ersetzt. Chrome, Electron-Apps, moderne Office-Versionen und alles, was TSF-Eingabefelder nutzt, ignorieren `WM_CHAR` teilweise oder vollständig. Zusätzlich: benötigt Focus-Tracking und Handle-Auflösung pro Insert.
 
@@ -67,7 +67,7 @@ Erneute Prüfung, ob die Clipboard-Methode durch eine direkte Schreibmethode ers
 
 **Kontext:** Der Hotkey muss ergonomisch, nicht-invasiv und in möglichst wenigen Anwendungen belegt sein.
 
-**Entscheidung:** `F9` als Standard. Konfigurierbar via `DICTUM_HOTKEY_RECORD` in `.env`.
+**Entscheidung:** `F9` als Standard. Konfigurierbar via `VOCIX_HOTKEY_RECORD` in `.env`.
 
 **Begründung:** Funktionstasten werden von wenigen Anwendungen belegt. `F9` ist eine Einzeltaste — ergonomisch besser als Drei-Tasten-Kombination. Die `keyboard`-Library erkennt Funktionstasten zuverlässig unter Windows.
 
@@ -92,7 +92,7 @@ Erneute Prüfung, ob die Clipboard-Methode durch eine direkte Schreibmethode ers
 
 **Kontext:** In Remote-Desktop-Sessions wird die Zwischenablage zwischen lokalem und Remote-Rechner synchronisiert. Die Standard-Delays (50ms/100ms) sind dafür zu kurz.
 
-**Entscheidung:** `DICTUM_RDP_MODE=true` setzt automatisch längere Delays (200ms/400ms). Delays sind auch einzeln konfigurierbar.
+**Entscheidung:** `VOCIX_RDP_MODE=true` setzt automatisch längere Delays (200ms/400ms). Delays sind auch einzeln konfigurierbar.
 
 **Tradeoff:** Höhere Latenz bei der Texteinfügung in RDP-Sessions (~400ms statt ~150ms).
 
@@ -109,20 +109,20 @@ Erneute Prüfung, ob die Clipboard-Methode durch eine direkte Schreibmethode ers
 - Verhindert Halluzinationen in stillen Abschnitten
 - Ermöglicht saubere Segmentierung bei längeren Aufnahmen
 
-**PyInstaller-Besonderheit:** Die Datei `silero_vad_v6.onnx` liegt im `faster_whisper/assets/`-Verzeichnis und wird von PyInstaller nicht automatisch erkannt. Sie muss explizit in `dictum.spec` als `datas`-Eintrag aufgenommen werden.
+**PyInstaller-Besonderheit:** Die Datei `silero_vad_v6.onnx` liegt im `faster_whisper/assets/`-Verzeichnis und wird von PyInstaller nicht automatisch erkannt. Sie muss explizit in `vocix.spec` als `datas`-Eintrag aufgenommen werden.
 
 ---
 
-## 008 — Package-Name `dictum` (2026-04-18)
+## 008 — Package-Name `vocix` (2026-04-18)
 
-**Kontext:** Das Projekt startete unter dem Arbeitstitel *TextME*. Das Python-Package hieß entsprechend `textme/`, die Haupt-App-Klasse `TextMEApp`. Parallel dazu setzte sich im User-Interface, im Log-Header, in den Env-Variablen (`DICTUM_*`), in der `.exe`-Spec und in der Repo-URL bereits das Akronym **DICTUM** (DICtation with Text Understanding & Modification) durch. Das Ergebnis war ein inkonsistenter Zustand: User sahen "DICTUM", Entwickler lasen "textme" in jeder Import-Zeile.
+**Kontext:** Das Projekt startete unter dem Arbeitstitel *VOCIX*. Das Python-Package hieß entsprechend `textme/`, die Haupt-App-Klasse `VOCIXApp`. Parallel dazu setzte sich im User-Interface, im Log-Header, in den Env-Variablen (`VOCIX_*`), in der `.exe`-Spec und in der Repo-URL bereits das Akronym **VOCIX** (DICtation with Text Understanding & Modification) durch. Das Ergebnis war ein inkonsistenter Zustand: User sahen "VOCIX", Entwickler lasen "textme" in jeder Import-Zeile.
 
-**Entscheidung:** Voller Cutover auf `dictum` als einzigen Projektnamen. Python-Package `dictum/`, Klasse `DictumApp`, alle Imports `from dictum...`.
+**Entscheidung:** Voller Cutover auf `vocix` als einzigen Projektnamen. Python-Package `vocix/`, Klasse `VocixApp`, alle Imports `from vocix...`.
 
 **Alternativen verworfen:**
 - *Package bleibt `textme/`, nur UI-Strings werden geändert* — Entwickler- und User-Sicht bleiben dauerhaft getrennt. Jeder neue Beitragende muss die Abbildung intern lernen.
-- *Alles zurück auf `TextME`* — widerspricht dem bereits etablierten User-facing Namen und bedeutet breaking Changes für alle `DICTUM_*`-Env-Vars, die Nutzer in ihren `.env`-Dateien haben.
+- *Alles zurück auf `VOCIX`* — widerspricht dem bereits etablierten User-facing Namen und bedeutet breaking Changes für alle `VOCIX_*`-Env-Vars, die Nutzer in ihren `.env`-Dateien haben.
 
-**Tradeoff:** Ein einzelner großer Rename-Commit ist nicht vermeidbar (21 Dateien, alle Imports). Rückwärts-Kompatibilität für eine alte `textme.*`-Import-API wäre unnötig — das Package wird nicht als Library konsumiert, sondern ausschließlich als Standalone-App gestartet (`python -m dictum.main` oder `DICTUM.exe`).
+**Tradeoff:** Ein einzelner großer Rename-Commit ist nicht vermeidbar (21 Dateien, alle Imports). Rückwärts-Kompatibilität für eine alte `textme.*`-Import-API wäre unnötig — das Package wird nicht als Library konsumiert, sondern ausschließlich als Standalone-App gestartet (`python -m vocix.main` oder `VOCIX.exe`).
 
-**Migrationspfad:** Keiner für Endnutzer — Env-Vars hießen bereits `DICTUM_*`, der Logfile-Pfad war bereits `dictum.log`. Für Entwickler: Klon neu ziehen oder `git pull` + einmal `__pycache__/` aufräumen.
+**Migrationspfad:** Keiner für Endnutzer — Env-Vars hießen bereits `VOCIX_*`, der Logfile-Pfad war bereits `vocix.log`. Für Entwickler: Klon neu ziehen oder `git pull` + einmal `__pycache__/` aufräumen.

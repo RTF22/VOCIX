@@ -15,7 +15,7 @@ def _get_app_dir() -> Path:
     if getattr(sys, "frozen", False):
         # PyInstaller .exe: Verzeichnis der .exe
         return Path(sys.executable).resolve().parent
-    # Normaler Python-Aufruf: Projektverzeichnis (eine Ebene über dictum/)
+    # Normaler Python-Aufruf: Projektverzeichnis (eine Ebene über vocix/)
     return Path(__file__).resolve().parent.parent
 
 
@@ -26,7 +26,7 @@ def _get_state_file() -> Path:
     """Pfad zur persistenten State-Datei für User-Einstellungen (z.B. übersprungene Update-Versionen)."""
     appdata = os.getenv("APPDATA")
     base = Path(appdata) if appdata else APP_DIR
-    return base / "TextME" / "state.json"
+    return base / "VOCIX" / "state.json"
 
 
 STATE_FILE = _get_state_file()
@@ -57,7 +57,7 @@ class Config:
     whisper_model: str = "small"
     whisper_language: str = "de"
     whisper_model_dir: str = field(default_factory=lambda: os.getenv(
-        "DICTUM_MODEL_DIR", str(APP_DIR / "models")
+        "VOCIX_MODEL_DIR", str(APP_DIR / "models")
     ))
 
     # Audio
@@ -68,10 +68,10 @@ class Config:
 
     # Hotkeys (konfigurierbar via .env — Werte wie von der 'keyboard'-Library erwartet)
     # Einzeltaste oder Kombination, z.B.: "right ctrl", "ctrl+shift+space", "f9"
-    hotkey_record: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_RECORD", "f9"))
-    hotkey_mode_a: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_A", "ctrl+shift+1"))
-    hotkey_mode_b: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_B", "ctrl+shift+2"))
-    hotkey_mode_c: str = field(default_factory=lambda: os.getenv("DICTUM_HOTKEY_MODE_C", "ctrl+shift+3"))
+    hotkey_record: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_RECORD", "f9"))
+    hotkey_mode_a: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_A", "ctrl+shift+1"))
+    hotkey_mode_b: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_B", "ctrl+shift+2"))
+    hotkey_mode_c: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_C", "ctrl+shift+3"))
 
     # Modus: "clean", "business", "rage"
     default_mode: str = "clean"
@@ -82,14 +82,14 @@ class Config:
     anthropic_timeout: float = 15.0  # Sekunden — bei Timeout Fallback auf Clean-Modus
 
     # RDP / Remote Desktop
-    rdp_mode: bool = field(default_factory=lambda: os.getenv("DICTUM_RDP_MODE", "").lower() in ("1", "true", "yes"))
+    rdp_mode: bool = field(default_factory=lambda: os.getenv("VOCIX_RDP_MODE", "").lower() in ("1", "true", "yes"))
     clipboard_delay: float = 0.05   # Sekunden — in RDP auf 0.15-0.3 erhöhen
     paste_delay: float = 0.1        # Sekunden — in RDP auf 0.3-0.5 erhöhen
 
     # Logging
-    log_level: str = field(default_factory=lambda: os.getenv("DICTUM_LOG_LEVEL", "INFO").upper())
+    log_level: str = field(default_factory=lambda: os.getenv("VOCIX_LOG_LEVEL", "INFO").upper())
     log_file: str = field(default_factory=lambda: os.getenv(
-        "DICTUM_LOG_FILE", str(APP_DIR / "dictum.log")
+        "VOCIX_LOG_FILE", str(APP_DIR / "vocix.log")
     ))
 
     # UI
@@ -108,7 +108,7 @@ class Config:
         # betroffen, die nutzen keyboard.add_hotkey statt Press/Release-Hooks.
         if "+" in self.hotkey_record:
             raise ValueError(
-                f"DICTUM_HOTKEY_RECORD={self.hotkey_record!r} enthält '+' — "
+                f"VOCIX_HOTKEY_RECORD={self.hotkey_record!r} enthält '+' — "
                 f"Push-to-Talk benötigt eine Einzeltaste (z.B. 'f9', 'f13', "
                 f"'right shift'). Siehe .docs/DECISIONS.md ADR 004. "
                 f"Default ist 'f9'."

@@ -4,7 +4,7 @@ import threading
 import numpy as np
 import sounddevice as sd
 
-from dictum.config import Config
+from vocix.config import Config
 
 logger = logging.getLogger(__name__)
 

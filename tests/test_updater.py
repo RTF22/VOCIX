@@ -1,4 +1,4 @@
-"""Tests für dictum.updater."""
+"""Tests für vocix.updater."""
 
 import io
 import json
@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from dictum import updater
+from vocix import updater
 
 
 class TestParseVersion:
@@ -49,10 +49,10 @@ class TestCheckLatest:
     def test_update_available(self):
         payload = {
             "tag_name": "v0.9.0",
-            "html_url": "https://github.com/RTF22/DICTUM/releases/tag/v0.9.0",
+            "html_url": "https://github.com/RTF22/VOCIX/releases/tag/v0.9.0",
             "body": "Notes",
         }
-        with patch("dictum.updater.request.urlopen", return_value=_make_response(payload)):
+        with patch("vocix.updater.request.urlopen", return_value=_make_response(payload)):
             info = updater.check_latest("0.8.2", skip_version=None)
         assert info is not None
         assert info.version == "0.9.0"
@@ -61,39 +61,39 @@ class TestCheckLatest:
 
     def test_same_version_returns_none(self):
         payload = {"tag_name": "v0.8.2", "html_url": "x", "body": ""}
-        with patch("dictum.updater.request.urlopen", return_value=_make_response(payload)):
+        with patch("vocix.updater.request.urlopen", return_value=_make_response(payload)):
             assert updater.check_latest("0.8.2", skip_version=None) is None
 
     def test_older_release_returns_none(self):
         payload = {"tag_name": "v0.7.0", "html_url": "x", "body": ""}
-        with patch("dictum.updater.request.urlopen", return_value=_make_response(payload)):
+        with patch("vocix.updater.request.urlopen", return_value=_make_response(payload)):
             assert updater.check_latest("0.8.2", skip_version=None) is None
 
     def test_skip_version_matches(self):
         payload = {"tag_name": "v0.9.0", "html_url": "x", "body": ""}
-        with patch("dictum.updater.request.urlopen", return_value=_make_response(payload)):
+        with patch("vocix.updater.request.urlopen", return_value=_make_response(payload)):
             assert updater.check_latest("0.8.2", skip_version="0.9.0") is None
 
     def test_skip_version_with_v_prefix(self):
         payload = {"tag_name": "v0.9.0", "html_url": "x", "body": ""}
-        with patch("dictum.updater.request.urlopen", return_value=_make_response(payload)):
+        with patch("vocix.updater.request.urlopen", return_value=_make_response(payload)):
             assert updater.check_latest("0.8.2", skip_version="v0.9.0") is None
 
     def test_skip_version_older_than_latest(self):
         """Skip gilt nur für exakte Match — neuere Releases zeigen trotzdem."""
         payload = {"tag_name": "v1.0.0", "html_url": "x", "body": ""}
-        with patch("dictum.updater.request.urlopen", return_value=_make_response(payload)):
+        with patch("vocix.updater.request.urlopen", return_value=_make_response(payload)):
             info = updater.check_latest("0.8.2", skip_version="0.9.0")
         assert info is not None
         assert info.version == "1.0.0"
 
     def test_network_error_returns_none(self):
         from urllib.error import URLError
-        with patch("dictum.updater.request.urlopen", side_effect=URLError("no net")):
+        with patch("vocix.updater.request.urlopen", side_effect=URLError("no net")):
             assert updater.check_latest("0.8.2", skip_version=None) is None
 
     def test_timeout_returns_none(self):
-        with patch("dictum.updater.request.urlopen", side_effect=TimeoutError("timeout")):
+        with patch("vocix.updater.request.urlopen", side_effect=TimeoutError("timeout")):
             assert updater.check_latest("0.8.2", skip_version=None) is None
 
     def test_malformed_json_returns_none(self):
@@ -104,9 +104,9 @@ class TestCheckLatest:
                 return False
             def read(self):
                 return b"{not json"
-        with patch("dictum.updater.request.urlopen", return_value=_BadResp()):
+        with patch("vocix.updater.request.urlopen", return_value=_BadResp()):
             assert updater.check_latest("0.8.2", skip_version=None) is None
 
     def test_missing_tag_name_returns_none(self):
-        with patch("dictum.updater.request.urlopen", return_value=_make_response({"body": "x"})):
+        with patch("vocix.updater.request.urlopen", return_value=_make_response({"body": "x"})):
             assert updater.check_latest("0.8.2", skip_version=None) is None

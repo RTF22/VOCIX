@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""PyInstaller spec für DICTUM — portable Standalone-App."""
+"""PyInstaller spec für VOCIX — portable Standalone-App."""
 
 import os
 import importlib
@@ -11,7 +11,7 @@ faster_whisper_path = os.path.dirname(importlib.import_module("faster_whisper").
 ctranslate2_path = os.path.dirname(importlib.import_module("ctranslate2").__file__)
 
 a = Analysis(
-    ["dictum/main.py"],
+    ["vocix/main.py"],
     pathex=[],
     binaries=[],
     datas=[
@@ -48,7 +48,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="DICTUM",
+    name="VOCIX",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -65,5 +65,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="DICTUM",
+    name="VOCIX",
 )

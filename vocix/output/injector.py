@@ -5,7 +5,7 @@ import time
 import keyboard
 import pyperclip
 
-from dictum.config import Config
+from vocix.config import Config
 
 logger = logging.getLogger(__name__)
 

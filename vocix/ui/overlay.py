@@ -2,7 +2,7 @@ import logging
 import threading
 import tkinter as tk
 
-from dictum.config import Config
+from vocix.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class StatusOverlay:
 
     def _run(self) -> None:
         self._root = tk.Tk()
-        self._root.title("DICTUM")
+        self._root.title("VOCIX")
         self._root.overrideredirect(True)
         self._root.attributes("-topmost", True)
         self._root.attributes("-alpha", 0.85)

@@ -2,7 +2,7 @@
 
 ## Überblick
 
-DICTUM ist eine modulare Sprachdiktion-App für Windows. Die Architektur folgt dem Prinzip austauschbarer Komponenten über abstrakte Basisklassen.
+VOCIX ist eine modulare Sprachdiktion-App für Windows. Die Architektur folgt dem Prinzip austauschbarer Komponenten über abstrakte Basisklassen.
 
 ## Datenfluss
 
@@ -40,7 +40,7 @@ Die Pipeline (Schritte 2–5) läuft in einem separaten Thread, damit der Hotkey
 - **VAD (Voice Activity Detection):** faster-whisper nutzt intern Silero VAD (`silero_vad_v6.onnx`), ein kompaktes ONNX-Neuronales-Netz, um Sprachsegmente im Audio zu erkennen. Dies dient zwei Zwecken:
   1. **Stille überspringen:** Pausen und Hintergrundgeräusche werden vor der Transkription herausgefiltert, was die Genauigkeit und Geschwindigkeit deutlich verbessert.
   2. **Segmentierung:** Lange Aufnahmen werden in sinnvolle Abschnitte zerlegt, die Whisper einzeln transkribiert.
-  Die VAD-Datei wird im PyInstaller-Build explizit mitgebundelt (`dictum.spec` → `datas`).
+  Die VAD-Datei wird im PyInstaller-Build explizit mitgebundelt (`vocix.spec` → `datas`).
 
 ### processing/base.py + clean.py / business.py / rage.py
 - Abstrakte Basisklasse `TextProcessor` mit `process(text) -> str`
@@ -70,9 +70,9 @@ Die Pipeline (Schritte 2–5) läuft in einem separaten Thread, damit der Hotkey
 - RDP-Modus passt Delays automatisch an
 
 ### Logging (in main.py konfiguriert)
-- Dual-Output: Console (`stdout`) + Logfile (`dictum.log`)
+- Dual-Output: Console (`stdout`) + Logfile (`vocix.log`)
 - `RotatingFileHandler`: max 5 MB pro Datei, 3 Backup-Dateien
-- Level konfigurierbar via `DICTUM_LOG_LEVEL` in `.env`
+- Level konfigurierbar via `VOCIX_LOG_LEVEL` in `.env`
 - Pipeline-Log zeigt den vollständigen Ablauf: Hotkey → Audiodauer → Rohtext → Ergebnis → Einfügung
 
 ## Erweiterbarkeit

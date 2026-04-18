@@ -1,4 +1,4 @@
-# DICTUM — DICtation with Text Understanding & Modification
+# VOCIX — Voice Capture & Intelligent eXpression
 
 Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen, transkribieren, intelligent transformieren und systemweit an der Cursorposition einfügen — in jeder Anwendung (Browser, Word, Outlook, IDEs, etc.).
 
@@ -27,23 +27,23 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 
 ### Option A: Portable .exe (empfohlen)
 
-1. [Release herunterladen](https://github.com/RTF22/DICTUM/releases) oder selbst bauen (siehe unten)
+1. [Release herunterladen](https://github.com/RTF22/VOCIX/releases) oder selbst bauen (siehe unten)
 2. Ordner an beliebigen Ort entpacken
 3. Optional: `.env.example` zu `.env` umbenennen und API-Key eintragen
-4. `DICTUM.exe` starten
+4. `VOCIX.exe` starten
 
 Das Whisper-Modell (~500 MB) wird beim ersten Start automatisch in den `models/`-Unterordner heruntergeladen.
 
 ### Option B: Aus Quellcode
 
 ```bash
-git clone https://github.com/RTF22/DICTUM.git
-cd DICTUM
+git clone https://github.com/RTF22/VOCIX.git
+cd VOCIX
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env
-python -m dictum.main
+python -m vocix.main
 ```
 
 ### .exe selbst bauen
@@ -53,7 +53,7 @@ pip install pyinstaller
 build_exe.bat
 ```
 
-Ergebnis liegt in `dist\DICTUM\` — der gesamte Ordner ist portabel.
+Ergebnis liegt in `dist\VOCIX\` — der gesamte Ordner ist portabel.
 
 ## Konfiguration
 
@@ -64,17 +64,17 @@ Alle Einstellungen werden über die `.env`-Datei im Anwendungsverzeichnis gesteu
 ANTHROPIC_API_KEY=sk-ant-dein-key-hier
 
 # Hotkeys — Push-to-Talk benötigt eine Einzeltaste, Moduswechsel dürfen Kombos sein
-DICTUM_HOTKEY_RECORD=f9
-DICTUM_HOTKEY_MODE_A=ctrl+shift+1
-DICTUM_HOTKEY_MODE_B=ctrl+shift+2
-DICTUM_HOTKEY_MODE_C=ctrl+shift+3
+VOCIX_HOTKEY_RECORD=f9
+VOCIX_HOTKEY_MODE_A=ctrl+shift+1
+VOCIX_HOTKEY_MODE_B=ctrl+shift+2
+VOCIX_HOTKEY_MODE_C=ctrl+shift+3
 
 # Logging (DEBUG, INFO, WARNING, ERROR)
-DICTUM_LOG_LEVEL=INFO
-DICTUM_LOG_FILE=dictum.log
+VOCIX_LOG_LEVEL=INFO
+VOCIX_LOG_FILE=vocix.log
 
 # RDP-Modus (längere Clipboard-Delays)
-DICTUM_RDP_MODE=true
+VOCIX_RDP_MODE=true
 ```
 
 Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
@@ -107,12 +107,12 @@ Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
 | Modus B/C liefern nur Clean-Ergebnis | `ANTHROPIC_API_KEY` in `.env` prüfen |
 | Whisper-Download schlägt fehl | Internetverbindung prüfen, Proxy/Firewall ggf. konfigurieren |
 | Text enthält falsche Zeichen | Sicherstellen, dass die Zielanwendung Ctrl+V / Einfügen unterstützt |
-| RDP: Text wird nicht eingefügt | `DICTUM_RDP_MODE=true` in `.env` setzen |
+| RDP: Text wird nicht eingefügt | `VOCIX_RDP_MODE=true` in `.env` setzen |
 
 ## Projektstruktur
 
 ```
-dictum/
+vocix/
 ├── main.py              # Entry Point, Orchestrierung
 ├── config.py            # Einstellungen (.env, Pfade, Hotkeys)
 ├── audio/recorder.py    # Mikrofon-Aufnahme (sounddevice)

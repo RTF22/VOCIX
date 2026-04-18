@@ -1,4 +1,4 @@
-"""DICTUM — DICtation with Text Understanding & Modification.
+"""VOCIX — Voice Capture & Intelligent eXpression.
 
 Push-to-Talk: Rechte Strg halten → sprechen → loslassen.
 Moduswechsel: Ctrl+Shift+1 (Clean) / 2 (Business) / 3 (Rage).
@@ -11,17 +11,17 @@ import threading
 
 import keyboard
 
-from dictum import __version__, updater
-from dictum.audio.recorder import AudioRecorder
-from dictum.config import Config, load_state
-from dictum.output.injector import TextInjector
-from dictum.processing.base import TextProcessor
-from dictum.processing.business import BusinessProcessor
-from dictum.processing.clean import CleanProcessor
-from dictum.processing.rage import RageProcessor
-from dictum.stt.whisper_stt import WhisperSTT
-from dictum.ui.overlay import StatusOverlay
-from dictum.ui.tray import TrayApp
+from vocix import __version__, updater
+from vocix.audio.recorder import AudioRecorder
+from vocix.config import Config, load_state
+from vocix.output.injector import TextInjector
+from vocix.processing.base import TextProcessor
+from vocix.processing.business import BusinessProcessor
+from vocix.processing.clean import CleanProcessor
+from vocix.processing.rage import RageProcessor
+from vocix.stt.whisper_stt import WhisperSTT
+from vocix.ui.overlay import StatusOverlay
+from vocix.ui.tray import TrayApp
 
 _LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 _LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -58,7 +58,7 @@ def _setup_logging(config: Config) -> None:
 logger = logging.getLogger(__name__)
 
 
-class DictumApp:
+class VocixApp:
     def __init__(self):
         self._config = Config.load()
         _setup_logging(self._config)
@@ -70,7 +70,7 @@ class DictumApp:
         self._quit_event = threading.Event()
 
         logger.info("=" * 50)
-        logger.info("DICTUM v%s startet...", __version__)
+        logger.info("VOCIX v%s startet...", __version__)
         logger.info("Log-Level: %s | Logfile: %s", self._config.log_level, self._config.log_file)
         logger.info("Hotkey (PTT): %s", self._config.hotkey_record)
         logger.info("Standard-Modus: %s", self._config.default_mode)
@@ -101,8 +101,8 @@ class DictumApp:
             on_quit=self._quit,
         )
 
-        self._overlay.show_temporary("DICTUM bereit", "done")
-        logger.info("DICTUM bereit — Modus: %s", self._current_mode)
+        self._overlay.show_temporary("VOCIX bereit", "done")
+        logger.info("VOCIX bereit — Modus: %s", self._current_mode)
 
     def _set_mode(self, mode: str) -> None:
         self._current_mode = mode
@@ -209,7 +209,7 @@ class DictumApp:
                      self._config.hotkey_mode_c)
 
     def _quit(self) -> None:
-        logger.info("DICTUM wird beendet...")
+        logger.info("VOCIX wird beendet...")
         self._running = False
         keyboard.unhook_all()
         try:
@@ -239,7 +239,7 @@ class DictumApp:
         self._register_hotkeys()
         self._start_update_check()
 
-        logger.info("DICTUM läuft. Zum Beenden: Tray-Icon → Beenden")
+        logger.info("VOCIX läuft. Zum Beenden: Tray-Icon → Beenden")
         try:
             # Blockiert bis _quit() das Event setzt (aus Tray-Thread oder Ctrl+C).
             # keyboard.wait() blockiert auch nach unhook_all() weiter, daher
@@ -251,7 +251,7 @@ class DictumApp:
 
 
 def main():
-    app = DictumApp()
+    app = VocixApp()
     app.run()
 
 
