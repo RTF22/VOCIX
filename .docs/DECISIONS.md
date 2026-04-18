@@ -110,3 +110,19 @@ Erneute Prüfung, ob die Clipboard-Methode durch eine direkte Schreibmethode ers
 - Ermöglicht saubere Segmentierung bei längeren Aufnahmen
 
 **PyInstaller-Besonderheit:** Die Datei `silero_vad_v6.onnx` liegt im `faster_whisper/assets/`-Verzeichnis und wird von PyInstaller nicht automatisch erkannt. Sie muss explizit in `dictum.spec` als `datas`-Eintrag aufgenommen werden.
+
+---
+
+## 008 — Package-Name `dictum` (2026-04-18)
+
+**Kontext:** Das Projekt startete unter dem Arbeitstitel *TextME*. Das Python-Package hieß entsprechend `textme/`, die Haupt-App-Klasse `TextMEApp`. Parallel dazu setzte sich im User-Interface, im Log-Header, in den Env-Variablen (`DICTUM_*`), in der `.exe`-Spec und in der Repo-URL bereits das Akronym **DICTUM** (DICtation with Text Understanding & Modification) durch. Das Ergebnis war ein inkonsistenter Zustand: User sahen "DICTUM", Entwickler lasen "textme" in jeder Import-Zeile.
+
+**Entscheidung:** Voller Cutover auf `dictum` als einzigen Projektnamen. Python-Package `dictum/`, Klasse `DictumApp`, alle Imports `from dictum...`.
+
+**Alternativen verworfen:**
+- *Package bleibt `textme/`, nur UI-Strings werden geändert* — Entwickler- und User-Sicht bleiben dauerhaft getrennt. Jeder neue Beitragende muss die Abbildung intern lernen.
+- *Alles zurück auf `TextME`* — widerspricht dem bereits etablierten User-facing Namen und bedeutet breaking Changes für alle `DICTUM_*`-Env-Vars, die Nutzer in ihren `.env`-Dateien haben.
+
+**Tradeoff:** Ein einzelner großer Rename-Commit ist nicht vermeidbar (21 Dateien, alle Imports). Rückwärts-Kompatibilität für eine alte `textme.*`-Import-API wäre unnötig — das Package wird nicht als Library konsumiert, sondern ausschließlich als Standalone-App gestartet (`python -m dictum.main` oder `DICTUM.exe`).
+
+**Migrationspfad:** Keiner für Endnutzer — Env-Vars hießen bereits `DICTUM_*`, der Logfile-Pfad war bereits `dictum.log`. Für Entwickler: Klon neu ziehen oder `git pull` + einmal `__pycache__/` aufräumen.

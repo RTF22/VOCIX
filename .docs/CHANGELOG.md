@@ -2,6 +2,20 @@
 
 Alle wesentlichen Änderungen an DICTUM werden in dieser Datei dokumentiert.
 
+## [0.8.1] — 2026-04-18
+
+### Geändert
+- **Package umbenannt** von `textme/` zu `dictum/` — Arbeitstitel ist vollständig durch das finale Akronym DICTUM ersetzt. Entry-Point ist jetzt `python -m dictum.main`. Siehe ADR 008.
+
+### Behoben
+- **Race-Condition im Push-to-Talk-Flow** — `_processing`-Flag wird jetzt thread-safe über ein `threading.Lock` geschützt, außerdem direkt im Stop-Handler gesetzt (Issue #1)
+- **Moduswechsel während laufender Pipeline** — der aktive Modus wird beim Aufnahme-Ende eingefroren und an den Worker-Thread übergeben (Issue #2)
+- **Key-Repeat flutete Logs und Overlay** — Windows' kontinuierliches `on_press_key` wird jetzt verworfen, solange der Recorder bereits läuft (Issue #3)
+- **Tray-Icon blieb nach dem Beenden sichtbar** — `os._exit(0)` durch regulären `sys.exit(0)` ersetzt, Tray und tkinter-Thread bekommen Zeit zum Aufräumen (Issue #6)
+- **Audio-Stream-Ressourcen bei Fehler** — Stream wird jetzt in `try/finally` geschlossen, der Sounddevice-Callback ignoriert Events nach Stop (Issue #7)
+- **Pipeline hing bei Netzwerkausfall** — Anthropic-Client nutzt jetzt einen konfigurierbaren Timeout (`anthropic_timeout`, Default 15 s) und fällt auf Clean zurück (Issue #8)
+- **Clean-Prozessor hinterließ führende Kommas** — Regex-Pass für stray Punctuation und doppelte Kommas; Mehrwort-Phrasen werden vor Einzelwörtern gematcht (Issue #9)
+
 ## [0.8.0] — 2026-04-16
 
 ### Geändert
