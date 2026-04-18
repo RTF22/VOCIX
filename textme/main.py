@@ -132,11 +132,14 @@ class TextMEApp:
             if self._processing:
                 return  # Pipeline läuft bereits — zweiten Stop ignorieren
             self._processing = True
+            # Modus beim Aufnahmeende einfrieren, damit ein Moduswechsel
+            # während STT/Processing die laufende Pipeline nicht beeinflusst
+            mode_snapshot = self._current_mode
         logger.info(">> Aufnahme beendet (Hotkey losgelassen)")
         # Pipeline in separatem Thread, damit Hotkey-Handler nicht blockiert
-        threading.Thread(target=self._process_pipeline, daemon=True).start()
+        threading.Thread(target=self._process_pipeline, args=(mode_snapshot,), daemon=True).start()
 
-    def _process_pipeline(self) -> None:
+    def _process_pipeline(self, mode: str) -> None:
         try:
             audio = self._recorder.stop()
             if audio is None:
@@ -157,8 +160,8 @@ class TextMEApp:
 
             logger.info("   Rohtext: \"%s\"", raw_text[:100] + ("..." if len(raw_text) > 100 else ""))
 
-            # Transformation
-            processor = self._processors.get(self._current_mode, self._processors["clean"])
+            # Transformation — Modus-Snapshot vom Aufnahmeende verwenden
+            processor = self._processors.get(mode, self._processors["clean"])
             self._overlay.show(f"Verarbeite ({processor.name})...", "processing")
             processed_text = processor.process(raw_text)
 
