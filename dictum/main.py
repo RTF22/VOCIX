@@ -190,23 +190,11 @@ class DictumApp:
                 self._processing = False
 
     def _register_hotkeys(self) -> None:
+        # Push-to-Talk: Einzeltaste via on_press_key/on_release_key. Kombos
+        # werden bereits in Config.__post_init__ abgelehnt (ADR 004).
         record_key = self._config.hotkey_record
-
-        # Push-to-Talk: on_press_key / on_release_key
-        if "+" in record_key:
-            parts = [p.strip() for p in record_key.split("+")]
-            trigger_key = parts[-1]
-            modifier_keys = parts[:-1]
-
-            def _check_and_start(e):
-                if all(keyboard.is_pressed(mod) for mod in modifier_keys):
-                    self._on_record_start()
-
-            keyboard.on_press_key(trigger_key, _check_and_start, suppress=False)
-            keyboard.on_release_key(trigger_key, lambda e: self._on_record_stop(), suppress=False)
-        else:
-            keyboard.on_press_key(record_key, lambda e: self._on_record_start(), suppress=False)
-            keyboard.on_release_key(record_key, lambda e: self._on_record_stop(), suppress=False)
+        keyboard.on_press_key(record_key, lambda e: self._on_record_start(), suppress=False)
+        keyboard.on_release_key(record_key, lambda e: self._on_record_stop(), suppress=False)
 
         # Moduswechsel
         keyboard.add_hotkey(self._config.hotkey_mode_a, lambda: self._set_mode("clean"))

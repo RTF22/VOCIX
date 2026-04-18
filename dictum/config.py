@@ -72,3 +72,14 @@ class Config:
                 self.clipboard_delay = 0.2
             if self.paste_delay < 0.3:
                 self.paste_delay = 0.4
+
+        # PTT erfordert eine Einzeltaste — Kombinationen sind nicht zuverlässig
+        # hold-to-record-fähig (siehe ADR 004). mode_a/b/c sind davon nicht
+        # betroffen, die nutzen keyboard.add_hotkey statt Press/Release-Hooks.
+        if "+" in self.hotkey_record:
+            raise ValueError(
+                f"DICTUM_HOTKEY_RECORD={self.hotkey_record!r} enthält '+' — "
+                f"Push-to-Talk benötigt eine Einzeltaste (z.B. 'f9', 'f13', "
+                f"'right shift'). Siehe .docs/DECISIONS.md ADR 004. "
+                f"Default ist 'f9'."
+            )
