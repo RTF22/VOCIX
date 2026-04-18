@@ -15,3 +15,7 @@ models/
 CLAUDE.md
 .claude/
 .plans/
+.docs/
+docs/
+tests/
+.gitignore
