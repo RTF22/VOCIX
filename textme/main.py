@@ -113,6 +113,11 @@ class TextMEApp:
         logger.info("Modus: %s", mode)
 
     def _on_record_start(self) -> None:
+        # Key-Repeat: Windows feuert on_press_key kontinuierlich, solange die
+        # Taste gehalten wird. Wenn Recorder bereits läuft, Event geräuschlos
+        # verwerfen (keine Logmessages, kein Overlay-Redraw).
+        if self._recorder.is_recording:
+            return
         with self._state_lock:
             if self._processing:
                 logger.debug("Aufnahme ignoriert — Pipeline läuft noch")
