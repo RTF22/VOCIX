@@ -12,9 +12,28 @@ Dokumentation der wichtigsten Design- und Technologieentscheidungen mit Begründ
 
 **Alternativen verworfen:**
 - `pyautogui.write()` — Scheitert an Umlauten (ä, ö, ü, ß) und Sonderzeichen. Sendet einzelne Tastenanschläge, extrem langsam bei langen Texten.
-- Windows `SendInput` API direkt — Gleiche Unicode-Probleme, höhere Komplexität.
+- Windows `SendInput` API direkt — siehe Recherche-Update 2026-04-18 unten für detaillierte Begründung.
 
 **Tradeoff:** Kurzzeitige Unterbrechung der Zwischenablage des Nutzers (wird nach ~200ms wiederhergestellt).
+
+### Recherche-Update 2026-04-18
+
+Erneute Prüfung, ob die Clipboard-Methode durch eine direkte Schreibmethode ersetzt werden sollte, die weder die Zwischenablage berührt noch Ctrl+V simuliert. Ergebnis: **Keine Alternative ist universell besser** — die Clipboard-Methode bleibt.
+
+| Methode | Unicode/Umlaute | App-Kompatibilität | Geschwindigkeit | Hauptproblem |
+|---------|-----------------|--------------------|-----------------| -------------|
+| Clipboard + Ctrl+V (aktuell) | alle | nahezu alle | schnell (1 Paste) | berührt Zwischenablage kurzzeitig |
+| `SendInput` + `KEYEVENTF_UNICODE` | alle | nicht in DirectX-Games, nicht in UAC-elevated Fenstern | zeichenweise, spürbar langsamer bei langen Texten | OS-Buffering-Bug, 5000-Zeichen-Limit |
+| `WM_CHAR` via `SendMessage` | alle | stark appabhängig | schnell | moderne TSF-basierte Eingabefelder ignorieren WM_CHAR |
+| UI Automation `TextPattern` | alle | nur wenn App TextPattern vollständig implementiert | langsam (Element-Lookup pro Insert) | Electron/Web-Apps oft unvollständig |
+
+**`SendInput` mit `KEYEVENTF_UNICODE`:** Kann Umlaute — der alte Hinweis "gleiche Unicode-Probleme" war fachlich ungenau. Echte Einschränkungen: (a) scheitert in DirectX-Spielen, die Input auf Scancode-Ebene erwarten, (b) scheitert in UAC-elevated Fenstern, wenn TextME selbst nicht elevated läuft, (c) sendet Zeichen einzeln → bei 2000 Zeichen deutlich langsamer als ein Clipboard-Paste, (d) dokumentierter OS-Buffering-Bug: bei Unicode-Eingaben wird u.U. nur das erste Zeichen verarbeitet bis Tastatur/Maus bewegt wird, (e) harter 5000-Zeichen-Limit der API.
+
+**`WM_CHAR` via `SendMessage`:** Offiziell durch das Text Services Framework (TSF) ersetzt. Chrome, Electron-Apps, moderne Office-Versionen und alles, was TSF-Eingabefelder nutzt, ignorieren `WM_CHAR` teilweise oder vollständig. Zusätzlich: benötigt Focus-Tracking und Handle-Auflösung pro Insert.
+
+**UI Automation `TextPattern`:** Offizielle moderne API, theoretisch der sauberste Weg. In der Praxis müssen Anwendungen das `TextPattern`-Interface vollständig implementieren — Electron-Apps, Browser-Textfelder und viele Non-Standard-Controls tun das unvollständig oder gar nicht. Zusätzlich erfordert jede Einfügung ein Element-Lookup über den UIA-Tree, was die Latenz gegenüber einem Clipboard-Paste deutlich erhöht.
+
+**Fazit:** Die Clipboard-Berührung ist der einzige Nachteil der aktuellen Lösung und wird durch Sicherung + Wiederherstellung innerhalb ~200ms abgefedert. Alle Alternativen tauschen diesen einen Nachteil gegen schlechtere App-Kompatibilität und/oder schlechtere Performance bei langen Texten ein. Entscheidung: unverändert beibehalten.
 
 ---
 
