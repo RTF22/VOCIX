@@ -1,12 +1,12 @@
 {
-    "version": "1.2.2",
+    "version": "1.2.3",
     "description": "Local voice dictation for Windows with global hotkey — Whisper STT + Claude text transformation.",
     "homepage": "https://github.com/RTF22/VOCIX",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/RTF22/VOCIX/releases/download/v1.2.2/VOCIX-v1.2.2-win-x64.zip",
-            "hash": "435a0d2d68e08cd12fc602a3c3f198cca4099f7d1c164f36cba8cf8d95ad1745",
+            "url": "https://github.com/RTF22/VOCIX/releases/download/v1.2.3/VOCIX-v1.2.3-win-x64.zip",
+            "hash": "4b7baeafcf1b889b4b4222be26f7fbad94308fc56731bdd86d8695900cbd4ef5",
             "extract_dir": "VOCIX"
         }
     },
