@@ -31,8 +31,8 @@ body:
       description: What exactly did you do before the bug appeared?
       placeholder: |
         1. Launch VOCIX.exe
-        2. Press F8 and speak "…"
-        3. Release F8
+        2. Press Pause and speak "…"
+        3. Release Pause
         4. See error
     validations:
       required: true

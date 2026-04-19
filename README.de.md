@@ -17,7 +17,7 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 
 ## Features
 
-- **Push-to-Talk** per globalem Hotkey (Standard: `F8`)
+- **Push-to-Talk** per globalem Hotkey (Standard: `Pause`)
 - **Drei Modi:**
   - **A — Clean:** Saubere Transkription, entfernt Füllwörter (äh, ähm, also, ...), leichte Korrektur
   - **B — Business:** Wandelt Sprache in professionelle Geschäftssprache um (Claude API)
@@ -78,7 +78,7 @@ Alle Einstellungen werden über die `.env`-Datei im Anwendungsverzeichnis gesteu
 ANTHROPIC_API_KEY=sk-ant-dein-key-hier
 
 # Hotkeys — Push-to-Talk benötigt eine Einzeltaste, Moduswechsel dürfen Kombos sein
-VOCIX_HOTKEY_RECORD=f8
+VOCIX_HOTKEY_RECORD=pause
 VOCIX_HOTKEY_MODE_A=ctrl+shift+1
 VOCIX_HOTKEY_MODE_B=ctrl+shift+2
 VOCIX_HOTKEY_MODE_C=ctrl+shift+3
@@ -99,14 +99,14 @@ Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
 
 | Tastenkombination | Aktion |
 |---|---|
-| `F8` (halten) | Push-to-Talk — sprechen, loslassen zum Verarbeiten |
+| `Pause` (halten) | Push-to-Talk — sprechen, loslassen zum Verarbeiten |
 | `Ctrl+Shift+1` | Modus A: Clean Transcription |
 | `Ctrl+Shift+2` | Modus B: Business Mode |
 | `Ctrl+Shift+3` | Modus C: Rage Mode |
 
 **Ablauf:**
 1. Cursor in das Zielfeld setzen (z.B. E-Mail, Chat, Texteditor)
-2. `F8` gedrückt halten und sprechen
+2. `Pause` gedrückt halten und sprechen
 3. Loslassen — der Text wird transkribiert, transformiert und automatisch eingefügt
 
 **Tray-Menü:** Rechtsklick auf das Tray-Icon → Moduswechsel, **Sprache / Language** (Deutsch / English — schaltet UI, Claude-Prompts und Whisper-STT), **Info** (About + Repo-Link), **Beenden**
@@ -119,6 +119,7 @@ Ohne API-Key fallen Modus B und C automatisch auf Modus A (Clean) zurück.
 | Kein Tray-Icon sichtbar | Versteckte Symbole in der Taskleiste prüfen (Pfeil nach oben) |
 | „VOCIX erfordert eine CPU mit AVX-Unterstützung" beim Start | CPU ist älter als ~2012 und kann CTranslate2 nicht ausführen. VOCIX läuft auf dieser Maschine nicht. |
 | Hotkey reagiert nicht | App als Administrator starten |
+| Laptop ohne `Pause`-Taste | `VOCIX_HOTKEY_RECORD=scroll lock` (oder `f7`) in `.env` setzen |
 | „Mikrofon nicht verfügbar" | Mikrofon in Windows-Einstellungen prüfen, Zugriff erlauben |
 | Modus B/C liefern nur Clean-Ergebnis | `ANTHROPIC_API_KEY` in `.env` prüfen |
 | Whisper-Download schlägt fehl | Internetverbindung prüfen, Proxy/Firewall ggf. konfigurieren |

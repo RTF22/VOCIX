@@ -1,6 +1,6 @@
 """VOCIX — Voice Capture & Intelligent eXpression.
 
-Push-to-Talk: F8 halten → sprechen → loslassen (Hotkey konfigurierbar via VOCIX_HOTKEY_RECORD).
+Push-to-Talk: Pause halten → sprechen → loslassen (Hotkey konfigurierbar via VOCIX_HOTKEY_RECORD).
 Moduswechsel: Ctrl+Shift+1 (Clean) / 2 (Business) / 3 (Rage).
 """
 

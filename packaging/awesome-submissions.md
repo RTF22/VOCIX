@@ -55,7 +55,7 @@ Template (English, adapt):
 
 > Hi <name>,
 >
-> I'm Jens, the author of VOCIX — a free, open-source voice dictation app for Windows. It uses Whisper locally for transcription and optionally Claude to rewrite speech into business language or de-escalate rage-typed messages. Push-to-talk on F8, portable .exe, no subscription. Thought it might be interesting for <specific-reason-from-their-content>. Repo: https://github.com/RTF22/VOCIX
+> I'm Jens, the author of VOCIX — a free, open-source voice dictation app for Windows. It uses Whisper locally for transcription and optionally Claude to rewrite speech into business language or de-escalate rage-typed messages. Push-to-talk on Pause, portable .exe, no subscription. Thought it might be interesting for <specific-reason-from-their-content>. Repo: https://github.com/RTF22/VOCIX
 >
 > No obligation — just wanted to put it on your radar. Happy to answer questions.
 

@@ -17,7 +17,7 @@ Local voice dictation app for Windows 11 with a global hotkey. Capture speech, t
 
 ## Features
 
-- **Push-to-Talk** via global hotkey (default: `F8`)
+- **Push-to-Talk** via global hotkey (default: `Pause`)
 - **Three modes:**
   - **A — Clean:** Clean transcription; strips filler words (um, uh, like, ...) with light corrections
   - **B — Business:** Rewrites speech into professional business language (Claude API)
@@ -83,7 +83,7 @@ ANTHROPIC_API_KEY=sk-ant-your-key-here
 VOCIX_LANGUAGE=en
 
 # Hotkeys — push-to-talk requires a single key, mode switchers may be combos
-VOCIX_HOTKEY_RECORD=f8
+VOCIX_HOTKEY_RECORD=pause
 VOCIX_HOTKEY_MODE_A=ctrl+shift+1
 VOCIX_HOTKEY_MODE_B=ctrl+shift+2
 VOCIX_HOTKEY_MODE_C=ctrl+shift+3
@@ -104,14 +104,14 @@ Without an API key, modes B and C automatically fall back to mode A (Clean).
 
 | Shortcut | Action |
 |---|---|
-| `F8` (hold) | Push-to-talk — speak, release to process |
+| `Pause` (hold) | Push-to-talk — speak, release to process |
 | `Ctrl+Shift+1` | Mode A: Clean transcription |
 | `Ctrl+Shift+2` | Mode B: Business mode |
 | `Ctrl+Shift+3` | Mode C: Rage mode |
 
 **Workflow:**
 1. Place the cursor in the target field (e-mail, chat, text editor, …)
-2. Hold `F8` and speak
+2. Hold `Pause` and speak
 3. Release — the text is transcribed, transformed and automatically inserted
 
 **Tray menu:** right-click the tray icon → mode switch, **Language / Sprache** (English / Deutsch — switches UI, Claude prompts and Whisper STT), **About** (version + repo link), **Quit**
@@ -124,6 +124,7 @@ Without an API key, modes B and C automatically fall back to mode A (Clean).
 | Tray icon not visible | Check hidden icons in the taskbar (arrow pointing up) |
 | "VOCIX requires a CPU with AVX support" on startup | Your CPU is older than ~2012 and cannot run CTranslate2. VOCIX will not work on this machine. |
 | Hotkey doesn't respond | Run the app as administrator |
+| Laptop without a `Pause` key | Set `VOCIX_HOTKEY_RECORD=scroll lock` (or `f7`) in `.env` |
 | "Microphone unavailable" | Check microphone permissions in Windows settings |
 | Modes B/C only return Clean results | Verify `ANTHROPIC_API_KEY` in `.env` |
 | Whisper download fails | Check your internet connection; configure proxy/firewall if needed |

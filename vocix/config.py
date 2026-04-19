@@ -104,8 +104,8 @@ class Config:
     min_duration: float = 0.5        # Mindestaufnahmelänge in Sekunden
 
     # Hotkeys (konfigurierbar via .env — Werte wie von der 'keyboard'-Library erwartet)
-    # Einzeltaste oder Kombination, z.B.: "right ctrl", "ctrl+shift+space", "f8"
-    hotkey_record: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_RECORD", "f8"))
+    # Einzeltaste oder Kombination, z.B.: "pause", "scroll lock", "f7", "ctrl+shift+space"
+    hotkey_record: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_RECORD", "pause"))
     hotkey_mode_a: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_A", "ctrl+shift+1"))
     hotkey_mode_b: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_B", "ctrl+shift+2"))
     hotkey_mode_c: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_C", "ctrl+shift+3"))
@@ -150,9 +150,9 @@ class Config:
         if "+" in self.hotkey_record:
             raise ValueError(
                 f"VOCIX_HOTKEY_RECORD={self.hotkey_record!r} enthält '+' — "
-                f"Push-to-Talk benötigt eine Einzeltaste (z.B. 'f8', 'f13', "
-                f"'right shift'). Siehe .docs/DECISIONS.md ADR 004. "
-                f"Default ist 'f8'."
+                f"Push-to-Talk benötigt eine Einzeltaste (z.B. 'pause', "
+                f"'scroll lock', 'f7'). Siehe .docs/DECISIONS.md ADR 004. "
+                f"Default ist 'pause'."
             )
 
     @classmethod
