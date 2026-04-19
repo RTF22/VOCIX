@@ -1,5 +1,5 @@
 PackageIdentifier: RTF22.VOCIX
-PackageVersion: 1.1.0
+PackageVersion: 1.2.0
 PackageLocale: en-US
 Publisher: RTF22
 PublisherUrl: https://github.com/RTF22
@@ -12,7 +12,7 @@ Copyright: Copyright (c) 2026 Jens Fricke
 ShortDescription: Local voice dictation for Windows with global hotkey — Whisper STT + Claude text transformation.
 Description: |-
   VOCIX (Voice Capture & Intelligent eXpression) is a local voice dictation app for Windows 11 with a global hotkey. Capture speech, transcribe it offline with faster-whisper, optionally transform it via Claude (Business or Rage mode), and insert the result system-wide at the cursor position — in any application.
-  Push-to-talk via F9, three modes (Clean / Business / Rage), system tray with colour-coded microphone icon, multilingual UI (German / English), RDP mode, fully portable — no Python required.
+  Push-to-talk via F9, three modes (Clean / Business / Rage), system tray with colour-coded microphone icon, multilingual UI (German / English), optional offline translation to English (any Whisper-supported language → EN), RDP mode, fully portable — no Python required.
 Moniker: vocix
 Tags:
   - dictation
@@ -23,6 +23,6 @@ Tags:
   - productivity
   - accessibility
   - windows
-ReleaseNotesUrl: https://github.com/RTF22/VOCIX/releases/tag/v1.1.0
+ReleaseNotesUrl: https://github.com/RTF22/VOCIX/releases/tag/v1.2.0
 ManifestType: defaultLocale
 ManifestVersion: 1.6.0
