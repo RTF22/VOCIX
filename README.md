@@ -154,3 +154,7 @@ vocix/
 ## License
 
 [MIT License](LICENSE) — free to use, including commercially. No warranty.
+
+VOCIX bundles third-party Python libraries in the portable distribution. See
+[THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for the required copyright
+and permission notices (MIT / BSD / HPND / LGPL-3.0).

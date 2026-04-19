@@ -16,6 +16,8 @@ a = Analysis(
     binaries=[],
     datas=[
         (".env.example", "."),
+        ("LICENSE", "."),
+        ("THIRD_PARTY_LICENSES.md", "."),
         (os.path.join(faster_whisper_path, "assets"), "faster_whisper/assets"),
         ("vocix/locales", "vocix/locales"),
     ],
