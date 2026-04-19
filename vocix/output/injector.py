@@ -58,9 +58,11 @@ class TextInjector:
             time.sleep(self._clipboard_delay)
             # Ctrl+V senden
             keyboard.send("ctrl+v")
-            # Pause damit die Anwendung den Paste verarbeiten kann
-            # Bei längeren Texten brauchen manche Apps mehr Zeit
-            extra_delay = len(text) / 5000  # ~0.2s pro 1000 Zeichen
+            # Pause damit die Anwendung den Paste verarbeiten kann.
+            # Bei längeren Texten brauchen manche Apps mehr Zeit (~0.2s pro 1000
+            # Zeichen), aber bei 2 s abgeriegelt — sonst fühlt sich die App nach
+            # einem langen Diktat/Business-Output wie eingefroren an.
+            extra_delay = min(len(text) / 5000, 2.0)
             time.sleep(self._paste_delay + extra_delay)
             logger.info("Text eingefügt (%d Zeichen, paste_delay=%.2fs)",
                         len(text), self._paste_delay + extra_delay)
