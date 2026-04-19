@@ -12,6 +12,7 @@
 
   "tray.title": "VOCIX — {mode}",
   "tray.language": "Language / Sprache",
+  "tray.translate_to_english": "Translate to English",
   "tray.check_updates": "Check for updates…",
   "tray.info": "About",
   "tray.quit": "Quit",
@@ -22,6 +23,8 @@
   "toast.update_body": "Version {version} is available. Click the tray menu to open.",
   "toast.checking": "Checking for updates…",
   "toast.up_to_date": "You are on the latest version.",
+  "toast.translate_on": "Translate mode on: audio → English",
+  "toast.translate_off": "Translate mode off",
 
   "about.title": "VOCIX — About",
   "about.tagline": "Voice Capture & Intelligent eXpression",
@@ -40,6 +43,7 @@
   "overlay.empty_result": "Empty result",
   "overlay.inserted": "Inserted",
   "overlay.error": "Error!",
+  "overlay.translate_badge": "→ EN",
 
   "error.mic_unavailable": "Microphone unavailable. Please check your audio settings.",
   "error.clipboard_nontext": "Clipboard contains non-text content (e.g. an image or file). It will be overwritten by the insertion and cannot be restored.",

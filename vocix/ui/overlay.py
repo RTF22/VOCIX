@@ -66,12 +66,13 @@ class StatusOverlay:
             except tk.TclError:
                 pass
 
-    def show(self, text: str, status: str = "processing") -> None:
+    def show(self, text: str, status: str = "processing", badge: str | None = None) -> None:
         color = self._STATUS_COLORS.get(status, "#2c3e50")
+        display = f"{text}   {badge}" if badge else text
 
         def _update():
             if self._label and self._root:
-                self._label.configure(text=text, bg=color)
+                self._label.configure(text=display, bg=color)
                 self._root.configure(bg=color)
                 self._root.deiconify()
                 self._root.lift()

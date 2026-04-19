@@ -103,6 +103,8 @@ class VocixApp:
             on_quit=self._quit,
             on_language_change=self._set_language,
             current_language=self._config.language,
+            on_translate_toggle=self._set_translate,
+            translate_to_english=self._config.translate_to_english,
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
@@ -131,6 +133,13 @@ class VocixApp:
         self._overlay.show_temporary(t("overlay.ready"), "done")
         logger.info("Sprache gewechselt: %s", code)
 
+    def _set_translate(self, enabled: bool) -> None:
+        self._config.translate_to_english = enabled
+        state = load_state()
+        state["translate_to_english"] = enabled
+        save_state(state)
+        logger.info("Translate-to-English: %s", enabled)
+
     def _on_record_start(self) -> None:
         # Key-Repeat: Windows feuert on_press_key kontinuierlich, solange die
         # Taste gehalten wird. Wenn Recorder bereits läuft, Event geräuschlos
@@ -143,7 +152,8 @@ class VocixApp:
                 return
         try:
             self._recorder.start()
-            self._overlay.show(t("overlay.recording"), "recording")
+            badge = t("overlay.translate_badge") if self._config.translate_to_english else None
+            self._overlay.show(t("overlay.recording"), "recording", badge=badge)
             logger.info(">> Aufnahme gestartet (Hotkey gedrückt)")
         except RuntimeError as e:
             logger.error("Aufnahme fehlgeschlagen: %s", e)

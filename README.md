@@ -20,6 +20,7 @@ Local voice dictation app for Windows 11 with a global hotkey. Capture speech, t
 - **Status overlay** showing recording/processing state
 - **Local processing** — speech-to-text runs fully offline (faster-whisper)
 - **Multilingual UI** (German / English) — switchable at runtime via the tray menu, also drives Claude prompts and the Whisper STT language
+- **Optional offline translation to English** — toggle in the tray menu: speak in any of ~50 Whisper-supported languages and VOCIX inserts native English text at the cursor, fully offline (no API key needed)
 - **Configurable hotkeys** via `.env`
 - **RDP mode** for Remote Desktop sessions
 - **Log file** with configurable log level

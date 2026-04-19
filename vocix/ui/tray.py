@@ -86,12 +86,16 @@ class TrayApp:
         on_quit: Callable[[], None],
         on_language_change: Callable[[str], None] | None = None,
         current_language: str | None = None,
+        on_translate_toggle: Callable[[bool], None] | None = None,
+        translate_to_english: bool = False,
     ):
         self._current_mode = current_mode
         self._current_language = current_language or get_language()
         self._on_mode_change = on_mode_change
         self._on_quit = on_quit
         self._on_language_change = on_language_change
+        self._on_translate_toggle = on_translate_toggle
+        self._translate_to_english = translate_to_english
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
         self._update_info: updater.UpdateInfo | None = None
@@ -125,6 +129,11 @@ class TrayApp:
                 )
             )
         items.append(MenuItem(t("tray.language"), Menu(*lang_items)))
+        items.append(MenuItem(
+            t("tray.translate_to_english"),
+            self._toggle_translate,
+            checked=lambda item: self._translate_to_english,
+        ))
         items.append(Menu.SEPARATOR)
 
         if self._update_info is not None:
@@ -210,6 +219,19 @@ class TrayApp:
             webbrowser.open(_REPO_URL)
 
         root.destroy()
+
+    def _toggle_translate(self) -> None:
+        self._translate_to_english = not self._translate_to_english
+        if self._on_translate_toggle is not None:
+            self._on_translate_toggle(self._translate_to_english)
+        self._update_icon()
+        toast_key = "toast.translate_on" if self._translate_to_english else "toast.translate_off"
+        self._notify("VOCIX", t(toast_key))
+        logger.info("Translate-to-English: %s", self._translate_to_english)
+
+    def update_translate(self, enabled: bool) -> None:
+        self._translate_to_english = enabled
+        self._update_icon()
 
     def _switch_mode(self, mode: str) -> None:
         self._current_mode = mode

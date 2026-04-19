@@ -29,13 +29,16 @@ class WhisperSTT(STTEngine):
         logger.info("Whisper-Modell geladen")
 
     def transcribe(self, audio: np.ndarray) -> str:
-        segments, info = self._model.transcribe(
-            audio,
-            language=self._config.whisper_language,
-            beam_size=5,
-            vad_filter=True,
-        )
+        kwargs = {
+            "language": self._config.whisper_language,
+            "beam_size": 5,
+            "vad_filter": True,
+        }
+        if self._config.translate_to_english:
+            kwargs["task"] = "translate"
+        segments, info = self._model.transcribe(audio, **kwargs)
         text = " ".join(segment.text.strip() for segment in segments)
-        logger.info("Transkription (%s, %.0f%% Konfidenz): %s",
-                     info.language, info.language_probability * 100, text)
+        task = kwargs.get("task", "transcribe")
+        logger.info("Transkription (task=%s, source=%s, %.0f%% Konfidenz): %s",
+                     task, info.language, info.language_probability * 100, text)
         return text

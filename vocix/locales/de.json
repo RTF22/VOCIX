@@ -12,6 +12,7 @@
 
   "tray.title": "VOCIX — {mode}",
   "tray.language": "Sprache / Language",
+  "tray.translate_to_english": "Ins Englische übersetzen",
   "tray.check_updates": "Nach Updates suchen…",
   "tray.info": "Info",
   "tray.quit": "Beenden",
@@ -22,6 +23,8 @@
   "toast.update_body": "Version {version} ist verfügbar. Klicke im Tray-Menü zum Öffnen.",
   "toast.checking": "Suche nach Updates…",
   "toast.up_to_date": "Du bist auf der aktuellsten Version.",
+  "toast.translate_on": "Übersetzung aktiv: Audio → Englisch",
+  "toast.translate_off": "Übersetzung deaktiviert",
 
   "about.title": "VOCIX — Info",
   "about.tagline": "Voice Capture & Intelligent eXpression",
@@ -40,6 +43,7 @@
   "overlay.empty_result": "Leeres Ergebnis",
   "overlay.inserted": "Eingefügt",
   "overlay.error": "Fehler!",
+  "overlay.translate_badge": "→ EN",
 
   "error.mic_unavailable": "Mikrofon nicht verfügbar. Bitte prüfe die Audioeinstellungen.",
   "error.clipboard_nontext": "Zwischenablage enthält Nicht-Text-Inhalt (z.B. Bild oder Datei). Dieser wird durch die Einfügung überschrieben und nicht wiederhergestellt.",

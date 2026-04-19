@@ -19,6 +19,7 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
 - **System Tray** mit farbcodiertem Mikrofon-Icon und Moduswechsel
 - **Status-Overlay** zeigt Aufnahme-/Verarbeitungsstatus
 - **Lokale Verarbeitung** — Speech-to-Text läuft vollständig offline (faster-whisper)
+- **Optionale Offline-Übersetzung ins Englische** — Tray-Toggle: in einer der ~50 von Whisper unterstützten Sprachen sprechen und VOCIX fügt sauberen englischen Text an der Cursorposition ein, komplett offline (kein API-Key nötig)
 - **Konfigurierbare Hotkeys** via `.env`
 - **RDP-Modus** für Remote-Desktop-Sessions
 - **Logfile** mit konfigurierbarem Log-Level

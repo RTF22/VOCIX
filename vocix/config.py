@@ -88,6 +88,10 @@ class Config:
     # Modus: "clean", "business", "rage"
     default_mode: str = "clean"
 
+    # Whisper Task: wenn True, übersetzt Whisper das Audio direkt ins Englische
+    # (task="translate"). Persistenz via state.json, kein Env-Override.
+    translate_to_english: bool = False
+
     # Anthropic
     anthropic_api_key: str = field(default_factory=lambda: os.getenv("ANTHROPIC_API_KEY", ""))
     anthropic_model: str = "claude-sonnet-4-20250514"
@@ -139,7 +143,10 @@ class Config:
         if path.exists():
             load_dotenv(path)
         config = cls()
-        stored = load_state().get("language")
+        state = load_state()
+        stored = state.get("language")
         if stored in ("de", "en"):
             config.language = stored
+        if isinstance(state.get("translate_to_english"), bool):
+            config.translate_to_english = state["translate_to_english"]
         return config
