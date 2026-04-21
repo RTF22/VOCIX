@@ -43,3 +43,8 @@ def show_info_with_link(title: str, body: str) -> bool:
     """Info-Dialog mit Ja/Nein (Ja = „Browser öffnen"). Gibt True zurück bei Ja."""
     result = _message_box(title, body, _MB_YESNO | _MB_ICONINFORMATION | _MB_TOPMOST)
     return result == _IDYES
+
+
+def show_info(title: str, body: str) -> None:
+    """Modaler Info-Dialog mit OK-Button."""
+    _message_box(title, body, _MB_OK | _MB_ICONINFORMATION | _MB_TOPMOST)

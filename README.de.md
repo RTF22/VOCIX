@@ -23,7 +23,11 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
   - **B — Business:** Wandelt Sprache in professionelle Geschäftssprache um (Claude API)
   - **C — Rage:** Deeskaliert aggressive Sprache in höfliche Formulierungen (Claude API)
 - **System Tray** mit farbcodiertem Mikrofon-Icon und Moduswechsel
-- **Status-Overlay** zeigt Aufnahme-/Verarbeitungsstatus
+- **Status-Overlay** mit Live-VU-Meter während der Aufnahme — sofortiges visuelles Feedback, dass das Mikrofon Pegel sieht
+- **Verlauf der letzten 20 Diktate** im Tray — Klick auf einen Eintrag fügt ihn erneut ein (rettet Text, wenn das Zielfenster gewechselt wurde)
+- **Nutzungsstatistik** — Wörter pro Tag/Woche/Gesamt, geschätzte gesparte Tippzeit (200 Anschläge/Min), Verteilung über die Modi
+- **Snippet-Expansion** — eigene Kürzel (`/sig`, `/adr`, …) im Diktat werden vor dem Einfügen durch Volltext ersetzt; Whisper-Transkripte wie „Schrägstrich Sig" werden automatisch normalisiert
+- **Auto-Update aus dem Tray** — neue Releases werden im Hintergrund erkannt; ein Klick lädt das Win-x64-ZIP, prüft den SHA256 und tauscht die Dateien automatisch aus
 - **Lokale Verarbeitung** — Speech-to-Text läuft vollständig offline (faster-whisper)
 - **Optionale Offline-Übersetzung ins Englische** — Tray-Toggle: in einer der ~50 von Whisper unterstützten Sprachen sprechen und VOCIX fügt sauberen englischen Text an der Cursorposition ein, komplett offline (kein API-Key nötig)
 - **Konfigurierbare Hotkeys** via `.env`

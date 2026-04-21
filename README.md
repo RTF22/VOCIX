@@ -23,7 +23,11 @@ Local voice dictation app for Windows 11 with a global hotkey. Capture speech, t
   - **B — Business:** Rewrites speech into professional business language (Claude API)
   - **C — Rage:** De-escalates aggressive language into polite phrasing (Claude API)
 - **System tray** with a colour-coded microphone icon and mode switching
-- **Status overlay** showing recording/processing state
+- **Status overlay** with a live VU meter while recording — instant visual feedback that the mic is picking up signal
+- **History of the last 20 dictations** in the tray — click an entry to re-insert it (saves your text when the target window has changed)
+- **Usage statistics** — words per day/week/total, estimated typing time saved (200 keystrokes/min), distribution across modes
+- **Snippet expansion** — your own shortcuts (`/sig`, `/adr`, …) inside the dictation are replaced with full text before insertion; Whisper transcripts like "slash sig" are normalised automatically
+- **Auto-update from the tray** — new releases are detected in the background; one click downloads the Win-x64 ZIP, verifies the SHA256 and swaps the files automatically
 - **Local processing** — speech-to-text runs fully offline (faster-whisper)
 - **Multilingual UI** (German / English) — switchable at runtime via the tray menu, also drives Claude prompts and the Whisper STT language
 - **Optional offline translation to English** — toggle in the tray menu: speak in any of ~50 Whisper-supported languages and VOCIX inserts native English text at the cursor, fully offline (no API key needed)

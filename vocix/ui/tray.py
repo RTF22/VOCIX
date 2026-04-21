@@ -10,7 +10,10 @@ from pystray import Icon, Menu, MenuItem
 from vocix import __version__
 from vocix import config as config_module
 from vocix import updater
+from vocix.history import History
 from vocix.i18n import available_languages, get_language, t
+from vocix.snippets import SnippetExpander
+from vocix.stats import Stats
 
 logger = logging.getLogger(__name__)
 _REPO_URL = "https://github.com/RTF22/VOCIX"
@@ -88,6 +91,11 @@ class TrayApp:
         current_language: str | None = None,
         on_translate_toggle: Callable[[bool], None] | None = None,
         translate_to_english: bool = False,
+        history: History | None = None,
+        stats: Stats | None = None,
+        snippets: SnippetExpander | None = None,
+        on_history_reinject: Callable[[str], None] | None = None,
+        on_install_update: Callable[["updater.UpdateInfo"], None] | None = None,
     ):
         self._current_mode = current_mode
         self._current_language = current_language or get_language()
@@ -96,6 +104,11 @@ class TrayApp:
         self._on_language_change = on_language_change
         self._on_translate_toggle = on_translate_toggle
         self._translate_to_english = translate_to_english
+        self._history = history
+        self._stats = stats
+        self._snippets = snippets
+        self._on_history_reinject = on_history_reinject
+        self._on_install_update = on_install_update
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
         self._update_info: updater.UpdateInfo | None = None
@@ -136,11 +149,25 @@ class TrayApp:
         ))
         items.append(Menu.SEPARATOR)
 
+        if self._history is not None:
+            items.append(MenuItem(t("tray.history"), self._build_history_menu()))
+        if self._stats is not None:
+            items.append(MenuItem(t("tray.stats"), self._show_stats))
+        if self._snippets is not None:
+            items.append(MenuItem(t("tray.snippets_edit"), self._edit_snippets))
+        if self._history is not None or self._stats is not None or self._snippets is not None:
+            items.append(Menu.SEPARATOR)
+
         if self._update_info is not None:
             items.append(MenuItem(
                 t("tray.update_available", version=self._update_info.version),
                 self._on_open_release,
             ))
+            if updater.is_frozen_bundle() and self._update_info.asset_url:
+                items.append(MenuItem(
+                    t("tray.update_install", version=self._update_info.version),
+                    self._install_update_clicked,
+                ))
             items.append(MenuItem(
                 t("tray.skip_version"),
                 self._on_skip_version,
@@ -150,6 +177,81 @@ class TrayApp:
         items.append(MenuItem(t("tray.info"), self._show_about))
         items.append(MenuItem(t("tray.quit"), self._quit))
         return Menu(*items)
+
+    def _build_history_menu(self) -> Menu:
+        if self._history is None:
+            return Menu(MenuItem(t("tray.history_empty"), None, enabled=False))
+
+        entries = self._history.entries()
+        if not entries:
+            return Menu(MenuItem(t("tray.history_empty"), None, enabled=False))
+
+        def make_reinject(text: str):
+            return lambda: self._reinject(text)
+
+        items = []
+        for entry in entries:
+            text = entry.get("text", "")
+            preview = text.replace("\n", " ").replace("\r", " ").strip()
+            if len(preview) > 50:
+                preview = preview[:47] + "..."
+            mode = entry.get("mode", "")
+            label = f"[{mode[:1].upper()}] {preview}" if mode else preview
+            items.append(MenuItem(label, make_reinject(text)))
+        items.append(Menu.SEPARATOR)
+        items.append(MenuItem(t("tray.history_clear"), self._clear_history))
+        return Menu(*items)
+
+    def _reinject(self, text: str) -> None:
+        if self._on_history_reinject is not None:
+            self._on_history_reinject(text)
+
+    def _clear_history(self) -> None:
+        if self._history is not None:
+            self._history.clear()
+            self._update_icon()
+
+    def refresh_history(self) -> None:
+        """Wird nach jedem neuen History-Eintrag aufgerufen, damit das Submenü
+        beim nächsten Öffnen die neuen Einträge zeigt."""
+        self._update_icon()
+
+    def _edit_snippets(self) -> None:
+        if self._snippets is None:
+            return
+        path = self._snippets.file_path
+        try:
+            os.startfile(str(path))  # type: ignore[attr-defined]
+        except (AttributeError, OSError) as e:
+            logger.warning("Snippets-Datei konnte nicht geöffnet werden: %s", e)
+
+    def _show_stats(self) -> None:
+        if self._stats is None:
+            return
+        from vocix.ui import native_dialog
+
+        today = self._stats.today()
+        week = self._stats.week()
+        total = self._stats.total()
+
+        def fmt(stats: dict) -> str:
+            mins = Stats.estimated_minutes_saved(stats["chars"])
+            modes = ", ".join(f"{m}:{c}" for m, c in sorted(stats["modes"].items())) or "-"
+            return t(
+                "stats.block",
+                dictations=stats["dictations"],
+                words=stats["words"],
+                minutes=int(mins),
+                modes=modes,
+            )
+
+        body = (
+            f"{t('stats.today')}\n{fmt(today)}\n\n"
+            f"{t('stats.week')}\n{fmt(week)}\n\n"
+            f"{t('stats.total')}\n{fmt(total)}\n\n"
+            f"{t('stats.assumption')}"
+        )
+        native_dialog.show_info(t("stats.title"), body)
 
     def set_update_available(self, info: "updater.UpdateInfo") -> None:
         self._update_info = info
@@ -163,6 +265,22 @@ class TrayApp:
     def _on_open_release(self) -> None:
         if self._update_info is not None and self._update_info.url:
             webbrowser.open(self._update_info.url)
+
+    def _install_update_clicked(self) -> None:
+        if self._update_info is None or self._on_install_update is None:
+            return
+        info = self._update_info
+        self._notify("VOCIX", t("toast.update_downloading", version=info.version))
+        cb = self._on_install_update
+
+        def _run():
+            try:
+                cb(info)
+            except Exception as e:
+                logger.error("Update-Install fehlgeschlagen: %s", e, exc_info=True)
+                self._notify("VOCIX", t("toast.update_failed"))
+
+        threading.Thread(target=_run, name="UpdateInstaller", daemon=True).start()
 
     def _on_skip_version(self) -> None:
         if self._update_info is None:

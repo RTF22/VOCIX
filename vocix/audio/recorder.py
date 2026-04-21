@@ -19,16 +19,24 @@ class AudioRecorder:
         self._stream: sd.InputStream | None = None
         self._lock = threading.Lock()
         self._recording = False
+        self._current_level = 0.0
 
     @property
     def is_recording(self) -> bool:
         return self._recording
+
+    @property
+    def current_level(self) -> float:
+        """RMS-Pegel des letzten Audio-Chunks (0.0..~1.0). Atomare Float-Read,
+        kein Lock nötig — Konsumenten dürfen einen leicht veralteten Wert sehen."""
+        return self._current_level
 
     def start(self) -> None:
         with self._lock:
             if self._recording:
                 return
             self._buffer.clear()
+            self._current_level = 0.0
             try:
                 self._stream = sd.InputStream(
                     samplerate=self._config.sample_rate,
@@ -89,3 +97,4 @@ class AudioRecorder:
         if status:
             logger.warning("Audio-Status: %s", status)
         self._buffer.append(indata.copy())
+        self._current_level = float(np.sqrt(np.mean(indata**2)))

@@ -14,8 +14,11 @@ import keyboard
 from vocix import __version__, i18n, updater
 from vocix.audio.recorder import AudioRecorder
 from vocix.config import Config, load_state, update_state
+from vocix.history import History
 from vocix.i18n import t
 from vocix.output.injector import TextInjector
+from vocix.snippets import SnippetExpander
+from vocix.stats import Stats
 from vocix.processing.base import TextProcessor
 from vocix.processing.business import BusinessProcessor
 from vocix.processing.clean import CleanProcessor
@@ -86,8 +89,12 @@ class VocixApp:
         self._overlay.show(t("overlay.loading_model"), "processing")
 
         self._recorder = AudioRecorder(self._config)
+        self._overlay.set_level_source(lambda: self._recorder.current_level)
         self._stt = WhisperSTT(self._config)
         self._injector = TextInjector(self._config)
+        self._history = History()
+        self._stats = Stats()
+        self._snippets = SnippetExpander()
 
         # Prozessoren
         self._processors: dict[str, TextProcessor] = {
@@ -105,6 +112,11 @@ class VocixApp:
             current_language=self._config.language,
             on_translate_toggle=self._set_translate,
             translate_to_english=self._config.translate_to_english,
+            history=self._history,
+            stats=self._stats,
+            snippets=self._snippets,
+            on_history_reinject=self._reinject_text,
+            on_install_update=self._install_update,
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
@@ -137,6 +149,21 @@ class VocixApp:
         with update_state() as state:
             state["translate_to_english"] = enabled
         logger.info("Translate-to-English: %s", enabled)
+
+    def _reinject_text(self, text: str) -> None:
+        """Tray-Callback: einen History-Eintrag erneut einfügen.
+
+        Läuft im Tray-Thread; lange Inject-Delays würden das Menü blockieren,
+        daher in eigenen Thread auslagern.
+        """
+        def _worker():
+            try:
+                self._injector.inject(text)
+                self._overlay.show_temporary(t("overlay.inserted"), "done")
+            except Exception as e:
+                logger.error("Re-Inject fehlgeschlagen: %s", e, exc_info=True)
+                self._overlay.show_temporary(t("overlay.error"), "error")
+        threading.Thread(target=_worker, daemon=True).start()
 
     def _on_record_start(self) -> None:
         # Key-Repeat: Windows feuert on_press_key kontinuierlich, solange die
@@ -202,6 +229,10 @@ class VocixApp:
                 self._overlay.show_temporary(t("overlay.empty_result"), "error")
                 return
 
+            # Snippet-Expansion (z.B. /sig → Signatur). Läuft nach dem Modus-
+            # Prozessor, sodass Claude den Platzhalter unangetastet lässt.
+            processed_text = self._snippets.expand(processed_text)
+
             logger.info("   Ergebnis (%s): \"%s\"", processor.name,
                         processed_text[:100] + ("..." if len(processed_text) > 100 else ""))
 
@@ -209,6 +240,11 @@ class VocixApp:
             self._injector.inject(processed_text)
             self._overlay.show_temporary(t("overlay.inserted"), "done")
             logger.info("   Text eingefügt (%d Zeichen)", len(processed_text))
+
+            # History + Stats nach erfolgreichem Inject
+            self._history.add(processed_text, mode)
+            self._stats.record(processed_text, mode)
+            self._tray.refresh_history()
 
         except Exception as e:
             logger.error("Pipeline-Fehler: %s", e, exc_info=True)
@@ -251,6 +287,19 @@ class VocixApp:
         # Main-Thread aus run() entlassen. sys.exit() hier wirkt nur im
         # Tray-Thread (Daemon) und würde den Prozess nicht beenden.
         self._quit_event.set()
+
+    def _install_update(self, info: updater.UpdateInfo) -> None:
+        """Tray-Callback: ZIP herunterladen, verifizieren, Helper-Batch starten,
+        VOCIX beenden — Helper kopiert die neuen Dateien und startet neu."""
+        try:
+            updater.install_update(info)
+        except Exception as e:
+            logger.error("install_update fehlgeschlagen: %s", e, exc_info=True)
+            self._overlay.show_temporary(t("overlay.error"), "error")
+            raise
+        # Helper läuft bereits und wartet auf Prozessende — sauber beenden.
+        logger.info("Update-Helper gestartet, beende VOCIX zum Austausch")
+        self._quit()
 
     def _start_update_check(self) -> None:
         """Startet asynchronen Update-Check im Hintergrund. Silent bei Fehlern."""
