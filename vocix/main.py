@@ -6,6 +6,7 @@ Moduswechsel: Ctrl+Shift+1 (Clean) / 2 (Business) / 3 (Rage).
 
 import logging
 import logging.handlers
+import os
 import sys
 import threading
 import time
@@ -403,6 +404,10 @@ class VocixApp:
         # Helper läuft bereits und wartet auf Prozessende — sauber beenden.
         logger.info("Update-Helper gestartet, beende VOCIX zum Austausch")
         self._quit()
+        # Sicherheitsnetz: non-daemon Threads (audio, keyboard hooks, pystray)
+        # können _quit() überleben und den Prozess am Leben halten — der
+        # Helper-Batch würde dann ewig auf das Prozess-Ende warten.
+        threading.Timer(2.0, lambda: os._exit(0)).start()
 
     def _start_update_check(self) -> None:
         """Startet asynchronen Update-Check im Hintergrund. Silent bei Fehlern."""

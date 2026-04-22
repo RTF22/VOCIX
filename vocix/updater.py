@@ -228,7 +228,7 @@ def _extract_payload(zip_path: Path, work_dir: Path) -> Path:
 
 
 _HELPER_BATCH_TEMPLATE = """@echo off
-setlocal EnableDelayedExpansion
+setlocal
 set "PID={pid}"
 set "STAGING={staging}"
 set "TARGET={target}"
@@ -237,12 +237,11 @@ set "LOG=%TEMP%\\vocix-update.log"
 
 echo [%date% %time%] Updater gestartet, warte auf PID %PID% > "%LOG%"
 
-:waitloop
-tasklist /FI "PID eq %PID%" 2>NUL | findstr /I "%PID%" >NUL
-if not errorlevel 1 (
-    timeout /t 1 /nobreak >NUL
-    goto waitloop
-)
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try {{ Wait-Process -Id %PID% -Timeout 30 -ErrorAction Stop }} catch {{ }}" >>"%LOG%" 2>&1
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Get-Process -Id %PID% -ErrorAction SilentlyContinue) {{ Stop-Process -Id %PID% -Force }}" >>"%LOG%" 2>&1
+
+timeout /t 2 /nobreak >NUL
 
 echo [%date% %time%] VOCIX beendet, kopiere Dateien >> "%LOG%"
 xcopy /E /I /Y /Q "%STAGING%\\*" "%TARGET%\\" >>"%LOG%" 2>&1
@@ -319,8 +318,10 @@ def _spawn_detached(batch: Path) -> None:
     """Startet den Batch losgelöst, ohne sichtbares Fenster."""
     flags = 0
     if os.name == "nt":
-        # CREATE_NO_WINDOW | DETACHED_PROCESS
-        flags = 0x08000000 | 0x00000008
+        # CREATE_NO_WINDOW. Nicht mit DETACHED_PROCESS kombinieren —
+        # die Flags sind laut Win32-Doku mutually exclusive und führen
+        # sonst zu undefiniertem Verhalten (sichtbare Console).
+        flags = 0x08000000
     subprocess.Popen(
         ["cmd.exe", "/c", str(batch)],
         creationflags=flags,
