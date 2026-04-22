@@ -98,6 +98,7 @@ class TrayApp:
         wakeword_enabled: bool = False,
         on_wakeword_toggle: Callable[[bool], None] | None = None,
         on_show_about: Callable[[], None] | None = None,
+        on_overlay_message: Callable[[str, str], None] | None = None,
     ):
         self._current_mode = current_mode
         self._current_language = current_language or get_language()
@@ -115,6 +116,7 @@ class TrayApp:
         self._wakeword_enabled = wakeword_enabled
         self._on_wakeword_toggle = on_wakeword_toggle
         self._on_show_about = on_show_about
+        self._on_overlay_message = on_overlay_message
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
         self._update_info: updater.UpdateInfo | None = None
@@ -269,10 +271,7 @@ class TrayApp:
         self._update_info = info
         logger.info("Update verfügbar: %s (%s)", info.version, info.url)
         self._update_icon()
-        self._notify(
-            t("toast.update_title"),
-            t("toast.update_body", version=info.version),
-        )
+        self._notify(t("toast.update_body", version=info.version), "done")
 
     def _on_open_release(self) -> None:
         if self._update_info is not None and self._update_info.url:
@@ -282,7 +281,7 @@ class TrayApp:
         if self._update_info is None or self._on_install_update is None:
             return
         info = self._update_info
-        self._notify("VOCIX", t("toast.update_downloading", version=info.version))
+        self._notify(t("toast.update_downloading", version=info.version), "processing")
         cb = self._on_install_update
 
         def _run():
@@ -290,7 +289,7 @@ class TrayApp:
                 cb(info)
             except Exception as e:
                 logger.error("Update-Install fehlgeschlagen: %s", e, exc_info=True)
-                self._notify("VOCIX", t("toast.update_failed"))
+                self._notify(t("toast.update_failed"), "error")
 
         threading.Thread(target=_run, name="UpdateInstaller", daemon=True).start()
 
@@ -305,20 +304,31 @@ class TrayApp:
 
     def _on_manual_check(self) -> None:
         def _run():
-            self._notify("VOCIX", t("toast.checking"))
+            logger.info("Manueller Update-Check angestoßen")
+            self._notify(t("toast.checking"), "processing")
             info = updater.check_latest(__version__, skip_version=None)
             if info is None:
-                self._notify("VOCIX", t("toast.up_to_date"))
+                logger.info("Update-Check: bereits aktuell")
+                self._notify(t("toast.up_to_date"), "done")
             else:
                 self.set_update_available(info)
 
         threading.Thread(target=_run, name="ManualUpdateCheck", daemon=True).start()
 
-    def _notify(self, title: str, message: str) -> None:
+    def _notify(self, message: str, status: str = "done") -> None:
+        """Zeigt eine kurze Statusmeldung — bevorzugt im Overlay, sonst
+        Fallback auf Tray-Toast (z.B. wenn kein Overlay-Callback gesetzt
+        wurde). Status steuert die Hintergrundfarbe im Overlay."""
+        if self._on_overlay_message is not None:
+            try:
+                self._on_overlay_message(message, status)
+                return
+            except Exception as e:
+                logger.warning("Overlay-Nachricht fehlgeschlagen: %s", e)
         if self._icon is None:
             return
         try:
-            self._icon.notify(message, title=title)
+            self._icon.notify(message, title="VOCIX")
         except Exception as e:
             logger.warning("Toast-Benachrichtigung fehlgeschlagen: %s", e)
 
@@ -337,7 +347,7 @@ class TrayApp:
             self._on_translate_toggle(self._translate_to_english)
         self._update_icon()
         toast_key = "toast.translate_on" if self._translate_to_english else "toast.translate_off"
-        self._notify("VOCIX", t(toast_key))
+        self._notify(t(toast_key), "done")
         logger.info("Translate-to-English: %s", self._translate_to_english)
 
     def _toggle_wakeword(self) -> None:
@@ -346,7 +356,7 @@ class TrayApp:
             self._on_wakeword_toggle(self._wakeword_enabled)
         self._update_icon()
         toast_key = "toast.wakeword_on" if self._wakeword_enabled else "toast.wakeword_off"
-        self._notify("VOCIX", t(toast_key))
+        self._notify(t(toast_key), "done")
         logger.info("Wake-Word: %s", self._wakeword_enabled)
 
     def update_wakeword(self, enabled: bool) -> None:

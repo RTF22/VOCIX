@@ -126,6 +126,7 @@ class VocixApp:
             wakeword_enabled=self._wakeword_enabled,
             on_wakeword_toggle=self._set_wakeword_enabled,
             on_show_about=self._show_about,
+            on_overlay_message=self._overlay.show_temporary,
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
