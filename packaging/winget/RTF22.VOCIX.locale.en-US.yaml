@@ -1,5 +1,5 @@
 PackageIdentifier: RTF22.VOCIX
-PackageVersion: 1.3.3
+PackageVersion: 1.3.4
 PackageLocale: en-US
 Publisher: RTF22
 PublisherUrl: https://github.com/RTF22
@@ -23,6 +23,6 @@ Tags:
   - productivity
   - accessibility
   - windows
-ReleaseNotesUrl: https://github.com/RTF22/VOCIX/releases/tag/v1.3.3
+ReleaseNotesUrl: https://github.com/RTF22/VOCIX/releases/tag/v1.3.4
 ManifestType: defaultLocale
 ManifestVersion: 1.6.0
