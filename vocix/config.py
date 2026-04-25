@@ -188,4 +188,55 @@ class Config:
         stored_accel = state.get("whisper_acceleration")
         if stored_accel in ("auto", "gpu", "cpu"):
             config.whisper_acceleration = stored_accel
+
+        # Hotkeys
+        for key in ("hotkey_record", "hotkey_mode_a", "hotkey_mode_b", "hotkey_mode_c"):
+            v = state.get(key)
+            if isinstance(v, str) and v.strip():
+                setattr(config, key, v)
+
+        # Modus
+        if state.get("default_mode") in ("clean", "business", "rage"):
+            config.default_mode = state["default_mode"]
+
+        # Logging / Pfade
+        if isinstance(state.get("log_level"), str):
+            config.log_level = state["log_level"].upper()
+        for key in ("log_file", "whisper_model_dir"):
+            v = state.get(key)
+            if isinstance(v, str) and v.strip():
+                setattr(config, key, v)
+
+        # UI
+        v = state.get("overlay_display_seconds")
+        if isinstance(v, (int, float)) and v > 0:
+            config.overlay_display_seconds = float(v)
+
+        # RDP / Audio
+        if isinstance(state.get("rdp_mode"), bool):
+            config.rdp_mode = state["rdp_mode"]
+        for key in ("clipboard_delay", "paste_delay", "silence_threshold", "min_duration"):
+            v = state.get(key)
+            if isinstance(v, (int, float)) and v > 0:
+                setattr(config, key, float(v))
+        v = state.get("sample_rate")
+        if isinstance(v, int) and v > 0:
+            config.sample_rate = v
+
+        # Anthropic
+        for key in ("anthropic_api_key", "anthropic_model"):
+            v = state.get(key)
+            if isinstance(v, str) and v.strip():
+                setattr(config, key, v)
+        v = state.get("anthropic_timeout")
+        if isinstance(v, (int, float)) and v > 0:
+            config.anthropic_timeout = float(v)
+
+        # Whisper-Sprach-Override (leerer String = an `language` koppeln)
+        if isinstance(state.get("whisper_language_override"), str):
+            config.whisper_language_override = state["whisper_language_override"]
+
+        # __post_init__ erneut aufrufen, damit RDP-Delays korrekt sind,
+        # falls rdp_mode aus state.json kam.
+        config.__post_init__()
         return config
