@@ -110,6 +110,7 @@ class TrayApp:
         current_whisper_acceleration: str = "auto",
         on_whisper_acceleration_change: Callable[[str], None] | None = None,
         cuda_available: bool = False,
+        on_open_settings: Callable[[], None] | None = None,
     ):
         self._current_mode = current_mode
         self._current_language = current_language or get_language()
@@ -134,6 +135,7 @@ class TrayApp:
         self._on_whisper_model_change = on_whisper_model_change
         self._on_whisper_acceleration_change = on_whisper_acceleration_change
         self._cuda_available = cuda_available
+        self._on_open_settings = on_open_settings
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
         self._update_info: updater.UpdateInfo | None = None
@@ -252,6 +254,7 @@ class TrayApp:
             ))
             items.append(Menu.SEPARATOR)
         items.append(MenuItem(t("tray.check_updates"), self._on_manual_check))
+        items.append(MenuItem(t("tray.settings"), self._invoke_open_settings))
         items.append(MenuItem(t("tray.info"), self._show_about))
         items.append(MenuItem(t("tray.quit"), self._quit))
         return Menu(*items)
@@ -457,6 +460,10 @@ class TrayApp:
             self._icon.icon = _create_icon_image(color, self._current_mode)
             self._icon.menu = self._build_menu()
             self._icon.title = t("tray.title", mode=_mode_label(self._current_mode))
+
+    def _invoke_open_settings(self) -> None:
+        if self._on_open_settings is not None:
+            self._on_open_settings()
 
     def _quit(self) -> None:
         self._on_quit()

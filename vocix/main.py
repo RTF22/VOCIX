@@ -174,6 +174,7 @@ class VocixApp:
             current_whisper_acceleration=self._config.whisper_acceleration,
             on_whisper_acceleration_change=self._set_whisper_acceleration,
             cuda_available=cuda_available(),
+            on_open_settings=self.open_settings,
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
