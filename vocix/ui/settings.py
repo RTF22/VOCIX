@@ -364,7 +364,96 @@ class SettingsDialog:
             self._paste_spin.state(["!disabled"])
 
     def _build_expert(self, frame: ttk.Frame) -> None:
-        pass
+        import os
+        from vocix.ui.help_popup import HelpButton
+
+        for col in (1,):
+            frame.columnconfigure(col, weight=1)
+        row = 0
+
+        ttk.Label(frame, text=t("settings.field.whisper_language_override")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_whisper_lang = tk.StringVar(value=self._draft.whisper_language_override or "auto")
+        cb = ttk.Combobox(frame, state="readonly", width=14, textvariable=self._var_whisper_lang,
+                          values=("auto", "de", "en", "fr", "es", "it", "nl", "pl", "pt", "tr", "ru", "ja", "zh"))
+        cb.grid(row=row, column=1, sticky="w")
+        cb.bind("<<ComboboxSelected>>",
+                lambda _e: setattr(self._draft, "whisper_language_override",
+                                  "" if self._var_whisper_lang.get() == "auto" else self._var_whisper_lang.get()))
+        HelpButton(frame,
+                   title_provider=lambda: t("settings.help.whisper_language_override.title"),
+                   body_provider=lambda: t("settings.help.whisper_language_override.body")
+                   ).grid(row=row, column=2, padx=4)
+        row += 1
+
+        ttk.Label(frame, text=t("settings.field.sample_rate")).grid(row=row, column=0, sticky="w", pady=4)
+        self._var_sample_rate = tk.IntVar(value=self._draft.sample_rate)
+        cb = ttk.Combobox(frame, state="readonly", width=10, textvariable=self._var_sample_rate,
+                          values=(16000, 22050, 44100, 48000))
+        cb.grid(row=row, column=1, sticky="w")
+        cb.bind("<<ComboboxSelected>>",
+                lambda _e: setattr(self._draft, "sample_rate", int(self._var_sample_rate.get())))
+        HelpButton(frame,
+                   title_provider=lambda: t("settings.help.sample_rate.title"),
+                   body_provider=lambda: t("settings.help.sample_rate.body")
+                   ).grid(row=row, column=2, padx=4)
+        row += 1
+
+        # Anthropic
+        self._anthropic_frame = ttk.LabelFrame(frame, text="Anthropic", padding=8)
+        self._anthropic_locked_label = ttk.Label(frame, text=t("settings.status.api_locked"),
+                                                 foreground="#888")
+
+        ttk.Label(self._anthropic_frame, text=t("settings.field.anthropic_model")).grid(row=0, column=0, sticky="w", pady=4)
+        self._var_anth_model = tk.StringVar(value=self._draft.anthropic_model)
+        ac = ttk.Combobox(self._anthropic_frame, textvariable=self._var_anth_model, width=36,
+                          values=("claude-sonnet-4-6", "claude-opus-4-7", "claude-haiku-4-5-20251001"))
+        ac.grid(row=0, column=1, sticky="w")
+        ac.bind("<FocusOut>",
+                lambda _e: setattr(self._draft, "anthropic_model", self._var_anth_model.get().strip()))
+        HelpButton(self._anthropic_frame,
+                   title_provider=lambda: t("settings.help.anthropic_model.title"),
+                   body_provider=lambda: t("settings.help.anthropic_model.body")
+                   ).grid(row=0, column=2, padx=4)
+
+        ttk.Label(self._anthropic_frame, text=t("settings.field.anthropic_timeout")).grid(row=1, column=0, sticky="w", pady=4)
+        self._var_anth_timeout = tk.DoubleVar(value=self._draft.anthropic_timeout)
+        ttk.Spinbox(self._anthropic_frame, from_=5, to=60, increment=1, width=8,
+                   textvariable=self._var_anth_timeout,
+                   command=lambda: setattr(self._draft, "anthropic_timeout",
+                                          float(self._var_anth_timeout.get()))
+                   ).grid(row=1, column=1, sticky="w")
+
+        self._show_anthropic_section(self._key_validated())
+        row += 1
+
+        # Buttons (Reihe 4 vorgeschoben damit Anthropic darüber Platz hat)
+        ttk.Button(frame, text=t("settings.button.open_config_dir"),
+                   command=lambda: os.startfile(self._config_dir())
+                   ).grid(row=row + 2, column=0, sticky="w", pady=(20, 4))
+        ttk.Button(frame, text=t("settings.button.reset"),
+                   command=self._on_factory_reset).grid(row=row + 2, column=1, sticky="w", pady=(20, 4))
+
+    def _config_dir(self) -> str:
+        from vocix.config import STATE_FILE
+        return str(STATE_FILE.parent)
+
+    def _show_anthropic_section(self, valid: bool) -> None:
+        if valid:
+            self._anthropic_locked_label.grid_forget()
+            self._anthropic_frame.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(20, 4))
+        else:
+            self._anthropic_frame.grid_forget()
+            self._anthropic_locked_label.grid(row=2, column=0, columnspan=3, sticky="w", pady=(20, 4))
+
+    def _on_factory_reset(self) -> None:
+        from tkinter import messagebox
+        from vocix.config import save_state
+        if not messagebox.askyesno(t("settings.title"), t("settings.confirm.factory_reset")):
+            return
+        save_state({})
+        self._draft = replace(Config())
+        messagebox.showinfo(t("settings.title"), "Bitte Dialog neu öffnen.")
+        self._on_cancel()
 
     def _validate(self) -> bool:
         self._error_var.set("")

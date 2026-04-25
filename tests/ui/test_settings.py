@@ -90,3 +90,16 @@ def test_advanced_silence_threshold_round_trip(root):
     setattr(dlg._draft, "silence_threshold", float(dlg._var_silence.get()))
     assert dlg._draft.silence_threshold == pytest.approx(0.05)
     dlg.destroy()
+
+
+def test_expert_factory_reset_clears_state(root, tmp_path, monkeypatch):
+    state_file = tmp_path / "state.json"
+    state_file.write_text('{"language": "en"}')
+    monkeypatch.setattr("vocix.config.STATE_FILE", state_file)
+    cfg = Config(language="de")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: None)
+    monkeypatch.setattr("tkinter.messagebox.askyesno", lambda *a, **k: True)
+    monkeypatch.setattr("tkinter.messagebox.showinfo", lambda *a, **k: None)
+    dlg._on_factory_reset()
+    import json
+    assert json.loads(state_file.read_text()) == {}
