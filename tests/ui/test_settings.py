@@ -125,3 +125,25 @@ def test_expert_factory_reset_clears_state(root, tmp_path, monkeypatch):
     dlg._on_factory_reset()
     import json
     assert json.loads(state_file.read_text()) == {}
+
+
+def test_duplicate_hotkey_blocks_apply(root):
+    received = []
+    cfg = Config(language="de")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: received.append(c))
+    dlg._draft.hotkey_record = "f9"
+    dlg._draft.hotkey_mode_a = "f9"
+    dlg._on_apply()
+    assert received == []
+    assert dlg._error_var.get() != ""
+    dlg.destroy()
+
+
+def test_ptt_combo_blocks_apply(root):
+    received = []
+    cfg = Config(language="de")
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: received.append(c))
+    dlg._draft.hotkey_record = "ctrl+f9"
+    dlg._on_apply()
+    assert received == []
+    dlg.destroy()

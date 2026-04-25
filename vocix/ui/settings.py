@@ -507,6 +507,19 @@ class SettingsDialog:
 
     def _validate(self) -> bool:
         self._error_var.set("")
+        if "+" in (self._draft.hotkey_record or ""):
+            self._error_var.set(t("settings.error.ptt_combo_not_allowed"))
+            return False
+        keys = [
+            self._draft.hotkey_record,
+            self._draft.hotkey_mode_a,
+            self._draft.hotkey_mode_b,
+            self._draft.hotkey_mode_c,
+        ]
+        non_empty = [k for k in keys if k]
+        if len(set(non_empty)) != len(non_empty):
+            self._error_var.set(t("settings.error.duplicate_hotkey"))
+            return False
         return True
 
     def _on_apply(self) -> None:
