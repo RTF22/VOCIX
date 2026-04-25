@@ -475,6 +475,11 @@ class TrayApp:
         self._thread.start()
         logger.info("Tray-Icon gestartet")
 
+    def refresh(self) -> None:
+        """Tray-Icon und Menü neu aufbauen — z.B. nach apply_settings, wenn
+        sich Sprache, Modus, Whisper-Settings o.ä. geändert haben."""
+        self._update_icon()
+
     def update_mode(self, mode: str) -> None:
         self._current_mode = mode
         self._update_icon()

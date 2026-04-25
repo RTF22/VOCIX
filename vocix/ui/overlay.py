@@ -39,6 +39,7 @@ class StatusOverlay:
         self._meter_active = False
         self._about_window: tk.Toplevel | None = None
         self._stats_window: tk.Toplevel | None = None
+        self._settings_dialog = None
         self._ready = threading.Event()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
@@ -307,6 +308,32 @@ class StatusOverlay:
             ).pack(anchor="e")
 
             self._center_and_focus(win)
+
+        self._schedule(_open)
+
+    def show_settings(self, config, on_apply) -> None:
+        """Settings-Dialog im Overlay-Tk-Thread öffnen.
+
+        Singleton-Verhalten analog show_about: ein bereits offenes Fenster
+        wird nach vorne gehoben statt ein zweites zu öffnen.
+        """
+        def _open():
+            existing = self._settings_dialog
+            if existing is not None:
+                try:
+                    if existing._win.winfo_exists():
+                        existing._win.lift()
+                        existing._win.focus_force()
+                        return
+                except tk.TclError:
+                    pass
+                self._settings_dialog = None
+            if self._root is None:
+                return
+            from vocix.ui.settings import SettingsDialog
+            self._settings_dialog = SettingsDialog(
+                self._root, config=config, on_apply=on_apply
+            )
 
         self._schedule(_open)
 

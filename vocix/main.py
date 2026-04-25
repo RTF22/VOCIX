@@ -69,6 +69,17 @@ logger = logging.getLogger(__name__)
 
 
 class VocixApp:
+    _STATE_PERSISTED_FIELDS = (
+        "language", "whisper_model", "whisper_acceleration", "translate_to_english",
+        "default_mode", "hotkey_record", "hotkey_mode_a", "hotkey_mode_b", "hotkey_mode_c",
+        "log_level", "log_file", "whisper_model_dir",
+        "overlay_display_seconds",
+        "rdp_mode", "clipboard_delay", "paste_delay",
+        "silence_threshold", "min_duration", "sample_rate",
+        "anthropic_api_key", "anthropic_model", "anthropic_timeout",
+        "whisper_language_override",
+    )
+
     def __init__(self):
         self._config = Config.load()
         _setup_logging(self._config)
@@ -383,6 +394,51 @@ class VocixApp:
                      self._config.hotkey_mode_a,
                      self._config.hotkey_mode_b,
                      self._config.hotkey_mode_c)
+
+    def _rebind_hotkeys(self) -> None:
+        """Hotkeys nach einer Settings-Änderung neu binden.
+
+        `keyboard.unhook_all()` wirft alle vorhandenen Bindings weg, danach
+        registriert `_register_hotkeys()` PTT- und Modus-Hotkeys aus der
+        aktuellen Config neu.
+        """
+        keyboard.unhook_all()
+        self._register_hotkeys()
+
+    def apply_settings(self, new_config) -> None:
+        """Übernimmt einen neuen Config-Stand: persistieren, dann selektiv
+        Whisper neu laden, Hotkeys neu binden, Sprache umschalten, Tray
+        refreshen — abhängig vom Diff zur alten Config."""
+        old = self._config
+
+        with update_state() as s:
+            for field_name in self._STATE_PERSISTED_FIELDS:
+                s[field_name] = getattr(new_config, field_name)
+
+        self._config = new_config
+
+        if old.language != new_config.language:
+            i18n.set_language(new_config.language)
+
+        if (old.whisper_model != new_config.whisper_model
+            or old.whisper_acceleration != new_config.whisper_acceleration
+            or old.whisper_model_dir != new_config.whisper_model_dir):
+            self._reload_stt()
+
+        any_diff = any(
+            getattr(old, f) != getattr(new_config, f)
+            for f in self._STATE_PERSISTED_FIELDS
+        )
+        if any_diff:
+            self._rebind_hotkeys()
+
+        if self._tray is not None:
+            self._tray.refresh()
+
+    def open_settings(self) -> None:
+        """Tray-Callback: Settings-Dialog im Overlay-Tk-Thread öffnen."""
+        if self._overlay is not None:
+            self._overlay.show_settings(self._config, self.apply_settings)
 
     def _quit(self) -> None:
         logger.info("VOCIX wird beendet...")
