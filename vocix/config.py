@@ -82,8 +82,16 @@ class Config:
     # Priorität: state.json > VOCIX_LANGUAGE > Default
     language: str = field(default_factory=lambda: os.getenv("VOCIX_LANGUAGE", "de"))
 
-    # Whisper
-    whisper_model: str = "small"
+    # Whisper-Modell. faster-whisper akzeptiert tiny/base/small/medium/
+    # large-v3/large-v3-turbo sowie HF-Repo-IDs. Override via state.json > env.
+    whisper_model: str = field(
+        default_factory=lambda: os.getenv("VOCIX_WHISPER_MODEL", "small")
+    )
+    # Hardware-Beschleunigung: "auto" (CUDA wenn verfügbar, sonst CPU),
+    # "gpu" (CUDA erzwingen), "cpu" (CPU erzwingen). Override state.json > env.
+    whisper_acceleration: str = field(
+        default_factory=lambda: os.getenv("VOCIX_WHISPER_ACCELERATION", "auto")
+    )
     # Normalerweise aus `language` abgeleitet. VOCIX_WHISPER_LANGUAGE erlaubt
     # einen expliziten Override (selten nötig) — leerer String = koppeln.
     whisper_language_override: str = field(
@@ -174,4 +182,10 @@ class Config:
             config.language = stored
         if isinstance(state.get("translate_to_english"), bool):
             config.translate_to_english = state["translate_to_english"]
+        stored_model = state.get("whisper_model")
+        if isinstance(stored_model, str) and stored_model.strip():
+            config.whisper_model = stored_model
+        stored_accel = state.get("whisper_acceleration")
+        if stored_accel in ("auto", "gpu", "cpu"):
+            config.whisper_acceleration = stored_accel
         return config

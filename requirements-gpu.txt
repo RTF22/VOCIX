@@ -1,0 +1,17 @@
+# Optionale GPU-Beschleunigung für VOCIX (NVIDIA + CUDA 12.x).
+#
+# Installation am GPU-Rechner:
+#   pip install -r requirements.txt
+#   pip install -r requirements-gpu.txt
+#
+# Danach im Tray-Menü "Beschleunigung → GPU (CUDA)" oder "Auto" wählen.
+#
+# Hinweise:
+# - Diese Pakete sind ~600 MB groß und bringen die CUDA-/cuDNN-Runtime mit.
+#   ctranslate2 (Dependency von faster-whisper) findet die DLLs automatisch.
+# - Das vorgepackte VOCIX-vX.Y.Z-win-x64.zip enthält KEINE GPU-Libraries —
+#   GPU-Nutzung setzt eine Source-Installation voraus.
+# - Auf Rechnern ohne NVIDIA-GPU einfach weglassen; "Auto" fällt still auf CPU.
+
+nvidia-cublas-cu12
+nvidia-cudnn-cu12>=9.0.0

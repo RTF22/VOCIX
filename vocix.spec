@@ -55,7 +55,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,  # UPX-Komprimierung deaktiviert — Hauptursache für Defender-FPs (Wacatac.H!ml)
     console=False,  # Kein Konsolenfenster
     icon=None,      # Optional: .ico Datei hier angeben
 )
@@ -66,7 +66,7 @@ coll = COLLECT(
     a.zipfiles,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,  # siehe oben
     upx_exclude=[],
     name="VOCIX",
 )

@@ -1,16 +1,44 @@
 import logging
-import sys
 from pathlib import Path
 
 import numpy as np
 from faster_whisper import WhisperModel
 
 from vocix.config import Config
-from vocix.i18n import t
 from vocix.stt.base import STTEngine
-from vocix.ui import native_dialog
 
 logger = logging.getLogger(__name__)
+
+
+def cuda_available() -> bool:
+    """Prüft, ob CTranslate2 mindestens ein CUDA-Gerät sieht.
+
+    Robust gegen fehlende Bibliotheken (cuDNN/cuBLAS) — bei jeder Exception
+    wird CPU genutzt. Wird aus dem Tray-Thread und beim Modellladen aufgerufen.
+    """
+    try:
+        import ctranslate2
+        return ctranslate2.get_cuda_device_count() > 0
+    except Exception as e:
+        logger.debug("CUDA-Check fehlgeschlagen: %s", e)
+        return False
+
+
+def _resolve_device(acceleration: str) -> tuple[str, str]:
+    """Wählt (device, compute_type) aus dem Acceleration-Setting.
+
+    auto → CUDA wenn verfügbar, sonst CPU
+    gpu  → CUDA erzwingen (Modellladen schlägt fehl, falls nicht da)
+    cpu  → CPU erzwingen
+    """
+    accel = (acceleration or "auto").lower()
+    if accel == "cpu":
+        return "cpu", "int8"
+    if accel == "gpu":
+        return "cuda", "float16"
+    if cuda_available():
+        return "cuda", "float16"
+    return "cpu", "int8"
 
 
 class WhisperSTT(STTEngine):
@@ -21,27 +49,27 @@ class WhisperSTT(STTEngine):
         model_dir = Path(config.whisper_model_dir)
         model_dir.mkdir(parents=True, exist_ok=True)
 
-        logger.info("Lade Whisper-Modell '%s' (Verzeichnis: %s)...",
-                     config.whisper_model, model_dir)
-        try:
-            self._model = WhisperModel(
-                config.whisper_model,
-                device="cpu",
-                compute_type="int8",
-                download_root=str(model_dir),
-            )
-        except Exception as e:
-            # CTranslate2 crasht auf pre-AVX-CPUs mit RuntimeError, OSError oder
-            # segfault-nahen Fehlern. Statt kommentarlos wegzusterben: klarer
-            # Dialog + sauberer Exit. Overlay/Tray laufen beim Modellladen noch
-            # nicht, also direkt Win32-MessageBox.
-            logger.critical("Whisper-Modell konnte nicht geladen werden: %s", e, exc_info=True)
-            native_dialog.show_error(
-                t("error.cpu_unsupported_title"),
-                t("error.cpu_unsupported_body", details=str(e)[:200]),
-            )
-            sys.exit(1)
-        logger.info("Whisper-Modell geladen")
+        device, compute_type = _resolve_device(config.whisper_acceleration)
+        logger.info(
+            "Lade Whisper-Modell '%s' (device=%s, compute=%s, Verzeichnis: %s)...",
+            config.whisper_model, device, compute_type, model_dir,
+        )
+        # CTranslate2 wirft hier bei pre-AVX-CPUs (RuntimeError/OSError) sowie
+        # bei GPU-Wahl ohne cuDNN/cuBLAS. Caller entscheidet, ob das fatal ist
+        # (Startup → Dialog + sys.exit) oder nur ein Toast (Laufzeit-Wechsel).
+        self._model = WhisperModel(
+            config.whisper_model,
+            device=device,
+            compute_type=compute_type,
+            download_root=str(model_dir),
+        )
+        self._device = device
+        self._compute_type = compute_type
+        logger.info("Whisper-Modell geladen (device=%s)", device)
+
+    @property
+    def device(self) -> str:
+        return self._device
 
     def transcribe(self, audio: np.ndarray) -> str:
         kwargs = {

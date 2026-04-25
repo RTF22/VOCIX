@@ -30,6 +30,11 @@ _MODE_ACCENTS = {
 
 _MODE_KEYS = ("clean", "business", "rage")
 
+# Whitelist für das Tray-Untermenü. faster-whisper akzeptiert mehr (HF-Repos),
+# aber im Menü beschränken wir uns auf die gängigen Größen.
+_WHISPER_MODELS = ("tiny", "base", "small", "medium", "large-v3", "large-v3-turbo")
+_WHISPER_ACCELERATIONS = ("auto", "gpu", "cpu")
+
 
 def _mode_label(mode: str) -> str:
     return t(f"mode.{mode}")
@@ -98,7 +103,13 @@ class TrayApp:
         wakeword_enabled: bool = False,
         on_wakeword_toggle: Callable[[bool], None] | None = None,
         on_show_about: Callable[[], None] | None = None,
+        on_show_stats: Callable[[str, str], None] | None = None,
         on_overlay_message: Callable[[str, str], None] | None = None,
+        current_whisper_model: str = "small",
+        on_whisper_model_change: Callable[[str], None] | None = None,
+        current_whisper_acceleration: str = "auto",
+        on_whisper_acceleration_change: Callable[[str], None] | None = None,
+        cuda_available: bool = False,
     ):
         self._current_mode = current_mode
         self._current_language = current_language or get_language()
@@ -116,7 +127,13 @@ class TrayApp:
         self._wakeword_enabled = wakeword_enabled
         self._on_wakeword_toggle = on_wakeword_toggle
         self._on_show_about = on_show_about
+        self._on_show_stats = on_show_stats
         self._on_overlay_message = on_overlay_message
+        self._whisper_model = current_whisper_model
+        self._whisper_acceleration = current_whisper_acceleration
+        self._on_whisper_model_change = on_whisper_model_change
+        self._on_whisper_acceleration_change = on_whisper_acceleration_change
+        self._cuda_available = cuda_available
         self._icon: Icon | None = None
         self._thread: threading.Thread | None = None
         self._update_info: updater.UpdateInfo | None = None
@@ -161,6 +178,37 @@ class TrayApp:
                 self._toggle_wakeword,
                 checked=lambda item: self._wakeword_enabled,
             ))
+
+        # Whisper-Modell-Untermenü
+        def make_model_switch(name: str):
+            return lambda: self._switch_whisper_model(name)
+
+        model_items = []
+        for name in _WHISPER_MODELS:
+            checked = name == self._whisper_model
+            model_items.append(MenuItem(
+                f"{'>> ' if checked else '   '}{name}",
+                make_model_switch(name),
+            ))
+        items.append(MenuItem(t("tray.whisper_model"), Menu(*model_items)))
+
+        # Beschleunigungs-Untermenü
+        def make_accel_switch(value: str):
+            return lambda: self._switch_whisper_acceleration(value)
+
+        accel_items = []
+        for value in _WHISPER_ACCELERATIONS:
+            checked = value == self._whisper_acceleration
+            label_key = f"tray.acceleration.{value}"
+            label = t(label_key)
+            if value == "gpu" and not self._cuda_available:
+                label = f"{label} {t('tray.acceleration.gpu_unavailable_suffix')}"
+            accel_items.append(MenuItem(
+                f"{'>> ' if checked else '   '}{label}",
+                make_accel_switch(value),
+            ))
+        items.append(MenuItem(t("tray.whisper_acceleration"), Menu(*accel_items)))
+
         items.append(Menu.SEPARATOR)
 
         if self._history is not None:
@@ -242,7 +290,6 @@ class TrayApp:
     def _show_stats(self) -> None:
         if self._stats is None:
             return
-        from vocix.ui import native_dialog
 
         today = self._stats.today()
         week = self._stats.week()
@@ -265,7 +312,11 @@ class TrayApp:
             f"{t('stats.total')}\n{fmt(total)}\n\n"
             f"{t('stats.assumption')}"
         )
-        native_dialog.show_info(t("stats.title"), body)
+        if self._on_show_stats is not None:
+            self._on_show_stats(t("stats.title"), body)
+        else:
+            from vocix.ui import native_dialog
+            native_dialog.show_info(t("stats.title"), body)
 
     def set_update_available(self, info: "updater.UpdateInfo") -> None:
         self._update_info = info
@@ -415,6 +466,26 @@ class TrayApp:
     def update_language(self, code: str) -> None:
         self._current_language = code
         self._update_icon()
+
+    def update_whisper_settings(self, model: str | None = None,
+                                 acceleration: str | None = None) -> None:
+        if model is not None:
+            self._whisper_model = model
+        if acceleration is not None:
+            self._whisper_acceleration = acceleration
+        self._update_icon()
+
+    def _switch_whisper_model(self, name: str) -> None:
+        if name == self._whisper_model:
+            return
+        if self._on_whisper_model_change is not None:
+            self._on_whisper_model_change(name)
+
+    def _switch_whisper_acceleration(self, value: str) -> None:
+        if value == self._whisper_acceleration:
+            return
+        if self._on_whisper_acceleration_change is not None:
+            self._on_whisper_acceleration_change(value)
 
     def stop(self) -> None:
         if self._icon is not None:

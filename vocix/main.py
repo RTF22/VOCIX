@@ -13,7 +13,7 @@ import time
 
 import keyboard
 
-from vocix import __version__, i18n, updater
+from vocix import __version__, i18n, single_instance, updater
 from vocix.audio.recorder import AudioRecorder
 from vocix.config import Config, load_state, update_state
 from vocix.history import History
@@ -26,7 +26,8 @@ from vocix.processing.base import TextProcessor
 from vocix.processing.business import BusinessProcessor
 from vocix.processing.clean import CleanProcessor
 from vocix.processing.rage import RageProcessor
-from vocix.stt.whisper_stt import WhisperSTT
+from vocix.stt.whisper_stt import WhisperSTT, cuda_available
+from vocix.ui import native_dialog
 from vocix.ui.overlay import StatusOverlay
 from vocix.ui.tray import TrayApp
 
@@ -93,7 +94,32 @@ class VocixApp:
 
         self._recorder = AudioRecorder(self._config)
         self._overlay.set_level_source(lambda: self._recorder.current_level)
-        self._stt = WhisperSTT(self._config)
+        try:
+            self._stt = WhisperSTT(self._config)
+        except Exception as e:
+            # Pre-AVX-CPU oder fehlende CUDA-Libs bei explizitem GPU-Wunsch.
+            # Wenn der User "gpu" forciert hat, retten wir den Start mit CPU
+            # und melden im Overlay — sonst harter Abbruch mit nativem Dialog.
+            logger.critical("Whisper-Modell konnte nicht geladen werden: %s", e, exc_info=True)
+            if self._config.whisper_acceleration == "gpu":
+                logger.warning("GPU-Erzwingung schlug fehl — wechsle für diesen Start auf CPU")
+                self._config.whisper_acceleration = "cpu"
+                try:
+                    self._stt = WhisperSTT(self._config)
+                    self._overlay.show_temporary(t("overlay.gpu_unavailable"), "error")
+                except Exception as e2:
+                    native_dialog.show_error(
+                        t("error.cpu_unsupported_title"),
+                        t("error.cpu_unsupported_body", details=str(e2)[:200]),
+                    )
+                    sys.exit(1)
+            else:
+                native_dialog.show_error(
+                    t("error.cpu_unsupported_title"),
+                    t("error.cpu_unsupported_body", details=str(e)[:200]),
+                )
+                sys.exit(1)
+        self._stt_reload_lock = threading.Lock()
         self._injector = TextInjector(self._config)
         self._history = History()
         self._stats = Stats()
@@ -126,7 +152,13 @@ class VocixApp:
             wakeword_enabled=self._wakeword_enabled,
             on_wakeword_toggle=self._set_wakeword_enabled,
             on_show_about=self._show_about,
+            on_show_stats=self._overlay.show_stats,
             on_overlay_message=self._overlay.show_temporary,
+            current_whisper_model=self._config.whisper_model,
+            on_whisper_model_change=self._set_whisper_model,
+            current_whisper_acceleration=self._config.whisper_acceleration,
+            on_whisper_acceleration_change=self._set_whisper_acceleration,
+            cuda_available=cuda_available(),
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
@@ -153,6 +185,65 @@ class VocixApp:
         self._tray.update_language(code)
         self._overlay.show_temporary(t("overlay.ready"), "done")
         logger.info("Sprache gewechselt: %s", code)
+
+    def _set_whisper_model(self, model: str) -> None:
+        if model == self._config.whisper_model:
+            return
+        self._reload_stt(model=model)
+
+    def _set_whisper_acceleration(self, acceleration: str) -> None:
+        if acceleration == self._config.whisper_acceleration:
+            return
+        self._reload_stt(acceleration=acceleration)
+
+    def _reload_stt(self, model: str | None = None, acceleration: str | None = None) -> None:
+        """Lädt WhisperSTT mit neuem Modell/Beschleunigung in einem Worker-Thread.
+
+        Pipeline-Aufrufe in einem parallelen Thread halten ihre eigene Referenz
+        auf das alte STT-Objekt — der Tausch hier ist also race-frei. Ein zweiter
+        Reload-Versuch während eines laufenden Reloads wird abgewiesen.
+        """
+        target_model = model if model is not None else self._config.whisper_model
+        target_accel = acceleration if acceleration is not None else self._config.whisper_acceleration
+
+        def _worker():
+            if not self._stt_reload_lock.acquire(blocking=False):
+                self._overlay.show_temporary(t("overlay.model_reload_busy"), "error")
+                return
+            try:
+                self._overlay.show(t("overlay.loading_model_named", name=target_model), "processing")
+                from dataclasses import replace
+                new_config = replace(
+                    self._config,
+                    whisper_model=target_model,
+                    whisper_acceleration=target_accel,
+                )
+                try:
+                    new_stt = WhisperSTT(new_config)
+                except Exception as e:
+                    logger.error("Modellwechsel fehlgeschlagen (model=%s, accel=%s): %s",
+                                 target_model, target_accel, e, exc_info=True)
+                    self._overlay.show_temporary(t("overlay.model_load_failed"), "error")
+                    return
+                self._stt = new_stt
+                self._config = new_config
+                with update_state() as state:
+                    state["whisper_model"] = target_model
+                    state["whisper_acceleration"] = target_accel
+                self._tray.update_whisper_settings(
+                    model=target_model,
+                    acceleration=target_accel,
+                )
+                logger.info("Whisper-STT neu geladen: model=%s, device=%s",
+                            target_model, new_stt.device)
+                self._overlay.show_temporary(
+                    t("overlay.model_loaded", name=target_model, device=new_stt.device.upper()),
+                    "done",
+                )
+            finally:
+                self._stt_reload_lock.release()
+
+        threading.Thread(target=_worker, daemon=True).start()
 
     def _set_translate(self, enabled: bool) -> None:
         self._config.translate_to_english = enabled
@@ -437,7 +528,22 @@ class VocixApp:
             self._quit()
 
 
+def _notify_already_running() -> None:
+    """Zweitinstanz: kurze Overlay-Meldung anzeigen und sauber beenden."""
+    config = Config.load()
+    i18n.set_language(config.language)
+    overlay = StatusOverlay(config)
+    overlay.show_temporary(t("overlay.already_running"), "error")
+    # Overlay blendet sich nach overlay_display_seconds selbst aus — danach
+    # noch kurz Luft für das Hide-Rendering, dann Tk sauber abbauen.
+    time.sleep(config.overlay_display_seconds + 0.4)
+    overlay.destroy()
+
+
 def main():
+    if not single_instance.acquire():
+        _notify_already_running()
+        return
     app = VocixApp()
     app.run()
 

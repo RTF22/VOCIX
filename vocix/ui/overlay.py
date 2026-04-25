@@ -159,6 +159,39 @@ class StatusOverlay:
 
         self._schedule(_hide_later)
 
+    # Heller als das Status-Overlay (#2c3e50) für bessere Lesbarkeit der Dialoge.
+    _DIALOG_BG = "#3d566e"
+    _DIALOG_FG = "#ffffff"
+    _DIALOG_FG_MUTED = "#ecf0f1"
+    _DIALOG_LINK = "#7fc4ff"
+
+    def _make_dialog(self, title: str) -> "tk.Toplevel | None":
+        """Erzeugt ein Toplevel mit einheitlichem Stil + Standard-Bindings.
+
+        Muss aus der Tk-Mainloop heraus aufgerufen werden (also via _schedule).
+        """
+        if self._root is None:
+            return None
+        win = tk.Toplevel(self._root)
+        win.title(title)
+        win.attributes("-topmost", True)
+        win.configure(bg=self._DIALOG_BG, padx=28, pady=22)
+        win.resizable(False, False)
+        win.bind("<Escape>", lambda _e: win.destroy())
+        win.bind("<Return>", lambda _e: win.destroy())
+        win.protocol("WM_DELETE_WINDOW", win.destroy)
+        return win
+
+    def _center_and_focus(self, win: "tk.Toplevel") -> None:
+        win.update_idletasks()
+        w = win.winfo_width()
+        h = win.winfo_height()
+        sw = win.winfo_screenwidth()
+        sh = win.winfo_screenheight()
+        win.geometry(f"+{(sw - w) // 2}+{(sh - h) // 2}")
+        win.focus_force()
+        win.lift()
+
     def show_about(
         self,
         title: str,
@@ -174,30 +207,26 @@ class StatusOverlay:
         wo die Dialoge auf manchen Setups nicht auf Klicks reagierten.
         """
         def _open():
-            if self._root is None:
+            win = self._make_dialog(title)
+            if win is None:
                 return
-            win = tk.Toplevel(self._root)
-            win.title(title)
-            win.attributes("-topmost", True)
-            win.configure(bg="#2c3e50", padx=28, pady=22)
-            win.resizable(False, False)
 
             tk.Label(
                 win, text=version, font=("Segoe UI", 14, "bold"),
-                fg="white", bg="#2c3e50",
+                fg=self._DIALOG_FG, bg=self._DIALOG_BG,
             ).pack(anchor="w")
             tk.Label(
-                win, text=tagline, font=("Segoe UI", 10, "italic"),
-                fg="#bdc3c7", bg="#2c3e50",
+                win, text=tagline, font=("Segoe UI", 11, "italic"),
+                fg=self._DIALOG_FG_MUTED, bg=self._DIALOG_BG,
             ).pack(anchor="w", pady=(0, 14))
             tk.Label(
-                win, text=description, font=("Segoe UI", 10),
-                fg="white", bg="#2c3e50", justify="left",
+                win, text=description, font=("Segoe UI", 11),
+                fg=self._DIALOG_FG, bg=self._DIALOG_BG, justify="left",
             ).pack(anchor="w")
 
             link = tk.Label(
-                win, text=url, font=("Segoe UI", 10, "underline"),
-                fg="#3498db", bg="#2c3e50", cursor="hand2",
+                win, text=url, font=("Segoe UI", 11, "underline"),
+                fg=self._DIALOG_LINK, bg=self._DIALOG_BG, cursor="hand2",
             )
             link.pack(anchor="w", pady=(14, 16))
             link.bind("<Button-1>", lambda _e: webbrowser.open(url))
@@ -207,18 +236,37 @@ class StatusOverlay:
                 font=("Segoe UI", 10),
             ).pack(anchor="e")
 
-            win.bind("<Escape>", lambda _e: win.destroy())
-            win.bind("<Return>", lambda _e: win.destroy())
-            win.protocol("WM_DELETE_WINDOW", win.destroy)
+            self._center_and_focus(win)
 
-            win.update_idletasks()
-            w = win.winfo_width()
-            h = win.winfo_height()
-            sw = win.winfo_screenwidth()
-            sh = win.winfo_screenheight()
-            win.geometry(f"+{(sw - w) // 2}+{(sh - h) // 2}")
-            win.focus_force()
-            win.lift()
+        self._schedule(_open)
+
+    def show_stats(self, title: str, body: str) -> None:
+        """Statistik-Dialog im selben Stil wie show_about.
+
+        Vorher lief das über native_dialog.show_info (Win32 MessageBoxW) aus
+        dem pystray-Thread — dort ließ sich der Dialog auf manchen Setups
+        nicht schließen. Tk-Toplevel im Overlay-Thread ist zuverlässig.
+        """
+        def _open():
+            win = self._make_dialog(title)
+            if win is None:
+                return
+
+            tk.Label(
+                win, text=title, font=("Segoe UI", 14, "bold"),
+                fg=self._DIALOG_FG, bg=self._DIALOG_BG,
+            ).pack(anchor="w", pady=(0, 12))
+            tk.Label(
+                win, text=body, font=("Segoe UI", 11),
+                fg=self._DIALOG_FG, bg=self._DIALOG_BG, justify="left",
+            ).pack(anchor="w", pady=(0, 16))
+
+            tk.Button(
+                win, text="OK", width=12, command=win.destroy,
+                font=("Segoe UI", 10),
+            ).pack(anchor="e")
+
+            self._center_and_focus(win)
 
         self._schedule(_open)
 
