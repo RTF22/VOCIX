@@ -83,6 +83,23 @@ def whisper_code() -> str:
         return _current_language
 
 
+def _lookup(translations: dict, key: str):
+    """Lookup mit Fallback auf dotted-Pfad: erst flacher Key, dann durch
+    verschachtelte Dicts gehen. ``settings.tab.basics`` findet also sowohl
+    ``{"settings.tab.basics": "..."}`` als auch ``{"settings": {"tab": {"basics": "..."}}}``."""
+    flat = translations.get(key)
+    if isinstance(flat, str):
+        return flat
+    parts = key.split(".")
+    node = translations
+    for part in parts:
+        if isinstance(node, dict) and part in node:
+            node = node[part]
+        else:
+            return None
+    return node if isinstance(node, str) else None
+
+
 def t(key: str, **kwargs) -> str:
     with _LOCK:
         current = _current_language
@@ -90,8 +107,8 @@ def t(key: str, **kwargs) -> str:
     _ensure_loaded(_FALLBACK_LANGUAGE)
     with _LOCK:
         value = (
-            _translations.get(current, {}).get(key)
-            or _translations.get(_FALLBACK_LANGUAGE, {}).get(key)
+            _lookup(_translations.get(current, {}), key)
+            or _lookup(_translations.get(_FALLBACK_LANGUAGE, {}), key)
             or key
         )
     if kwargs:
