@@ -1,4 +1,9 @@
 {
+  "_meta": {
+    "name": "Deutsch",
+    "whisper_code": "de"
+  },
+
   "lang.de": "Deutsch",
   "lang.en": "English",
 
@@ -130,9 +135,27 @@
       "api_key": "Wird benötigt für Modus Business und Rage. Test öffnet einen kurzen Ping.",
       "default_mode": "Modus, mit dem VOCIX startet. Business/Rage setzen einen gültigen API-Key voraus.",
       "hotkey_record": "Einzeltaste — Push-to-Talk benötigt Hold-fähige Tasten (z. B. Pause, F9).",
+      "hotkey_mode_a": "Tastenkombination, die direkt in den Clean-Modus schaltet.",
+      "hotkey_mode_b": "Tastenkombination, die direkt in den Business-Modus schaltet (benötigt API-Key).",
+      "hotkey_mode_c": "Tastenkombination, die direkt in den Rage-Modus schaltet (benötigt API-Key).",
+      "model_dir": "Verzeichnis, in dem Whisper-Modelle gecacht werden (~75 MB bis ~3 GB pro Modell).",
+      "log_file": "Pfad der Logdatei. Bestehende Datei wird ausgewählt, nicht überschrieben.",
+      "log_level": "DEBUG zeigt alles, INFO ist Default, WARNING/ERROR nur Probleme.",
+      "overlay_seconds": "Wie lange der Status-Overlay (rechts oben) nach Aktionen sichtbar bleibt.",
       "rdp_mode": "Verlängert Clipboard-/Paste-Delays für Remote-Desktop-Sitzungen.",
+      "clipboard_delay": "Wartezeit nach dem Kopieren in die Zwischenablage. Bei RDP automatisch erhöht.",
+      "paste_delay": "Wartezeit nach Strg+V bevor das Original-Clipboard wiederhergestellt wird.",
       "silence_threshold": "RMS-Wert, unter dem Audio als Stille gilt. Höher = aggressiver schneiden.",
-      "sample_rate": "Whisper erwartet 16000 Hz — andere Werte sind experimentell."
+      "min_duration": "Aufnahmen unter dieser Länge werden verworfen (verhindert Versehensauslöser).",
+      "whisper_language_override": "Erzwingt eine andere Whisper-Sprache als die Eingabesprache. „auto\" = an Eingabesprache koppeln.",
+      "sample_rate": "Whisper erwartet 16000 Hz — andere Werte sind experimentell.",
+      "anthropic_model": "Claude-Modell für Business/Rage. Sonnet 4.6 ist Default.",
+      "anthropic_timeout": "Maximale Wartezeit auf eine Antwort der Claude-API.",
+      "test_button": "Sendet einen kurzen Ping an die Anthropic-API, um den Key zu prüfen.",
+      "browse_button": "Datei- oder Verzeichnis-Auswahl öffnen.",
+      "other_key_button": "Hotkey live durch Tastendruck erfassen.",
+      "reset_button": "Setzt alle Einstellungen auf Werkszustand zurück (state.json wird geleert).",
+      "open_config_dir_button": "Öffnet %APPDATA%/VOCIX/ im Explorer."
     },
     "help": {
       "whisper_model": {
@@ -180,7 +203,18 @@
       "path_missing": "Pfad existiert nicht."
     },
     "confirm": {
-      "factory_reset": "Wirklich alle Einstellungen auf Werkszustand zurücksetzen?"
+      "factory_reset": "Wirklich alle Einstellungen auf Werkszustand zurücksetzen?",
+      "factory_reset_done": "Werkseinstellungen wiederhergestellt — bitte Dialog neu öffnen."
+    },
+    "section": {
+      "anthropic": "Anthropic"
+    },
+    "filter": {
+      "log_file": "Log-Datei",
+      "all_files": "Alle Dateien"
+    },
+    "notice": {
+      "language_changed": "Sprache geändert — Dialog bitte schließen und neu öffnen, um die neuen Texte zu sehen."
     },
     "lang": { "de": "Deutsch", "en": "Englisch", "other": "Andere…" },
     "output": { "input_lang": "Wie Eingabesprache", "english": "Englisch" },

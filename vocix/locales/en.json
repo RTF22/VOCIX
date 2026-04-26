@@ -1,4 +1,9 @@
 {
+  "_meta": {
+    "name": "English",
+    "whisper_code": "en"
+  },
+
   "lang.de": "Deutsch",
   "lang.en": "English",
 
@@ -130,9 +135,27 @@
       "api_key": "Required for Business and Rage modes. Test sends a short ping.",
       "default_mode": "Mode VOCIX starts with. Business/Rage require a valid API key.",
       "hotkey_record": "Single key — push-to-talk needs hold-capable keys (e.g. Pause, F9).",
+      "hotkey_mode_a": "Key combo that switches directly to Clean mode.",
+      "hotkey_mode_b": "Key combo that switches directly to Business mode (requires API key).",
+      "hotkey_mode_c": "Key combo that switches directly to Rage mode (requires API key).",
+      "model_dir": "Directory where Whisper models are cached (~75 MB to ~3 GB per model).",
+      "log_file": "Path of the log file. Existing files are selected, not overwritten.",
+      "log_level": "DEBUG shows everything, INFO is default, WARNING/ERROR shows problems only.",
+      "overlay_seconds": "How long the status overlay (top right) stays visible after actions.",
       "rdp_mode": "Extends clipboard and paste delays for remote desktop sessions.",
+      "clipboard_delay": "Wait time after copying to clipboard. Auto-increased in RDP mode.",
+      "paste_delay": "Wait time after Ctrl+V before the original clipboard is restored.",
       "silence_threshold": "RMS value below which audio counts as silence. Higher = trim more aggressively.",
-      "sample_rate": "Whisper expects 16000 Hz — other values are experimental."
+      "min_duration": "Recordings shorter than this are discarded (prevents accidental triggers).",
+      "whisper_language_override": "Forces a different Whisper language than input. \"auto\" = follow input language.",
+      "sample_rate": "Whisper expects 16000 Hz — other values are experimental.",
+      "anthropic_model": "Claude model used for Business/Rage. Sonnet 4.6 is default.",
+      "anthropic_timeout": "Maximum wait time for an Anthropic API response.",
+      "test_button": "Sends a short ping to the Anthropic API to check the key.",
+      "browse_button": "Open a file or directory picker.",
+      "other_key_button": "Capture a hotkey live by pressing keys.",
+      "reset_button": "Reset all settings to factory defaults (clears state.json).",
+      "open_config_dir_button": "Open %APPDATA%/VOCIX/ in Explorer."
     },
     "help": {
       "whisper_model": {
@@ -180,7 +203,18 @@
       "path_missing": "Path does not exist."
     },
     "confirm": {
-      "factory_reset": "Really reset all settings to factory defaults?"
+      "factory_reset": "Really reset all settings to factory defaults?",
+      "factory_reset_done": "Factory defaults restored — please reopen the dialog."
+    },
+    "section": {
+      "anthropic": "Anthropic"
+    },
+    "filter": {
+      "log_file": "Log file",
+      "all_files": "All files"
+    },
+    "notice": {
+      "language_changed": "Language changed — please close and reopen the dialog to see the new text."
     },
     "lang": { "de": "German", "en": "English", "other": "Other…" },
     "output": { "input_lang": "Same as input", "english": "English" },

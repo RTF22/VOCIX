@@ -1,51 +1,57 @@
-"""Internationalisierung: JSON-basierter String-Lookup mit Fallback-Kette.
+"""Internationalization: JSON-based string lookup with fallback chain.
 
 API:
-    set_language(code)   — aktive Sprache wechseln
-    get_language()       — aktuelle Sprache
-    t(key, **kwargs)     — übersetzten String holen, mit str.format-Interpolation
-    available_languages()— {"de": "Deutsch", "en": "English"}
-    whisper_code()       — aktuelle Sprache als Whisper-Locale-Code
+    set_language(code)              switch active language
+    get_language()                  current language code
+    t(key, **kwargs)                translated string with str.format interpolation
+    available_languages()           {code: display_name} discovered from locales/*.json
+    whisper_code()                  current language as Whisper locale code
+    register_language_listener(cb)  callback fires after every successful set_language()
 
-Fallback: gesuchte Sprache → Englisch → Schlüssel als String.
+Fallback: requested language -> English -> raw key.
+
+Locale files may include a top-level "_meta" block:
+    "_meta": {"name": "Deutsch", "whisper_code": "de"}
 """
 
 import json
 import logging
 import sys
 import threading
+from functools import lru_cache
 from pathlib import Path
+from typing import Callable
 
 logger = logging.getLogger(__name__)
 
 _DEFAULT_LANGUAGE = "en"
 _FALLBACK_LANGUAGE = "en"
 
-_translations: dict[str, dict[str, str]] = {}
+_translations: dict[str, dict] = {}
 _current_language = _DEFAULT_LANGUAGE
-# Schützt _current_language und _translations vor Races zwischen set_language()
-# (Tray-Thread) und t() (Pipeline-Thread). RLock, weil _ensure_loaded() intern
-# wieder unter Lock laufen darf.
+_listeners: list[Callable[[str], None]] = []
+# Guards _current_language, _translations and _listeners against races between
+# set_language() (tray thread) and t() (pipeline thread). RLock so _ensure_loaded()
+# can re-enter under the same lock.
 _LOCK = threading.RLock()
 
 
 def _locales_dir() -> Path:
-    """Pfad zum locales-Verzeichnis — funktioniert als Script und als PyInstaller-Bundle."""
+    """Path to locales directory, works as script and as PyInstaller bundle."""
     if getattr(sys, "frozen", False):
-        # Im Bundle: neben der .exe (PyInstaller kopiert datas in _MEIPASS)
         base = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
         return base / "vocix" / "locales"
     return Path(__file__).resolve().parent / "locales"
 
 
-def _load_file(code: str) -> dict[str, str]:
+def _load_file(code: str) -> dict:
     path = _locales_dir() / f"{code}.json"
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        logger.warning("Locale-Datei fehlt: %s", path)
+        logger.warning("Locale file missing: %s", path)
     except (OSError, json.JSONDecodeError) as e:
-        logger.warning("Locale-Datei konnte nicht gelesen werden (%s): %s", path, e)
+        logger.warning("Locale file unreadable (%s): %s", path, e)
     return {}
 
 
@@ -55,8 +61,65 @@ def _ensure_loaded(code: str) -> None:
             _translations[code] = _load_file(code)
 
 
+def _meta(code: str) -> dict:
+    _ensure_loaded(code)
+    with _LOCK:
+        meta = _translations.get(code, {}).get("_meta", {})
+    return meta if isinstance(meta, dict) else {}
+
+
+@lru_cache(maxsize=1)
 def available_languages() -> dict[str, str]:
-    return {"de": "Deutsch", "en": "English"}
+    """Discover languages by scanning locales/*.json. Display name comes from
+    each file's _meta.name block, falling back to the file stem if absent.
+    Result is cached for the process lifetime; call invalidate_languages()
+    after dropping a new locale at runtime (only useful in tests)."""
+    result: dict[str, str] = {}
+    for path in sorted(_locales_dir().glob("*.json")):
+        code = path.stem
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as e:
+            logger.warning("Skipping locale %s: %s", path, e)
+            continue
+        meta = data.get("_meta") if isinstance(data, dict) else None
+        name = (meta or {}).get("name") if isinstance(meta, dict) else None
+        result[code] = name if isinstance(name, str) and name else code
+    if not result:
+        result = {"en": "English"}
+    return result
+
+
+def invalidate_languages() -> None:
+    """Reset the available_languages() cache and forget loaded translations.
+    Used by tests that drop locale files at runtime."""
+    available_languages.cache_clear()
+    with _LOCK:
+        _translations.clear()
+
+
+def register_language_listener(callback: Callable[[str], None]) -> None:
+    """Register a callback that fires after every successful set_language().
+    The new language code is passed as the only argument."""
+    with _LOCK:
+        if callback not in _listeners:
+            _listeners.append(callback)
+
+
+def unregister_language_listener(callback: Callable[[str], None]) -> None:
+    with _LOCK:
+        if callback in _listeners:
+            _listeners.remove(callback)
+
+
+def _notify_listeners(code: str) -> None:
+    with _LOCK:
+        snapshot = list(_listeners)
+    for cb in snapshot:
+        try:
+            cb(code)
+        except Exception as e:
+            logger.warning("Language listener failed: %s", e)
 
 
 def set_language(code: str) -> None:
@@ -64,12 +127,15 @@ def set_language(code: str) -> None:
     if code not in available_languages():
         with _LOCK:
             current = _current_language
-        logger.warning("Unbekannter Sprachcode %r — bleibe bei %r", code, current)
+        logger.warning("Unknown language code %r, staying with %r", code, current)
         return
     _ensure_loaded(code)
     _ensure_loaded(_FALLBACK_LANGUAGE)
     with _LOCK:
+        if _current_language == code:
+            return
         _current_language = code
+    _notify_listeners(code)
 
 
 def get_language() -> str:
@@ -78,15 +144,19 @@ def get_language() -> str:
 
 
 def whisper_code() -> str:
-    """Whisper-Sprachcode für aktuelle UI-Sprache (derzeit 1:1-Mapping)."""
+    """Whisper locale code for the active UI language. Reads _meta.whisper_code
+    from the locale JSON; falls back to the language code itself if absent."""
     with _LOCK:
-        return _current_language
+        current = _current_language
+    code = _meta(current).get("whisper_code")
+    return code if isinstance(code, str) and code else current
 
 
 def _lookup(translations: dict, key: str):
-    """Lookup mit Fallback auf dotted-Pfad: erst flacher Key, dann durch
-    verschachtelte Dicts gehen. ``settings.tab.basics`` findet also sowohl
-    ``{"settings.tab.basics": "..."}`` als auch ``{"settings": {"tab": {"basics": "..."}}}``."""
+    """Lookup with fallback to dotted path: try the flat key first, then walk
+    nested dicts. ``settings.tab.basics`` matches both
+    ``{"settings.tab.basics": "..."}`` and
+    ``{"settings": {"tab": {"basics": "..."}}}``."""
     flat = translations.get(key)
     if isinstance(flat, str):
         return flat
@@ -115,6 +185,6 @@ def t(key: str, **kwargs) -> str:
         try:
             return value.format(**kwargs)
         except (KeyError, IndexError) as e:
-            logger.warning("Interpolation fehlgeschlagen für %r: %s", key, e)
+            logger.warning("Interpolation failed for %r: %s", key, e)
             return value
     return value
