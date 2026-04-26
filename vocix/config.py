@@ -9,6 +9,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from vocix.processing.providers import ProviderConfig
+
 logger = logging.getLogger(__name__)
 
 # Serialisiert Zugriffe auf state.json. Update-Thread (updater) und Tray-Thread
@@ -130,6 +132,10 @@ class Config:
     anthropic_model: str = "claude-sonnet-4-20250514"
     anthropic_timeout: float = 15.0  # Sekunden — bei Timeout Fallback auf Clean-Modus
 
+    # Roher llm-Block aus state.json — wird in load() gefüllt.
+    # Format siehe docs/superpowers/specs/2026-04-26-llm-provider-abstraction-design.md
+    llm: dict = field(default_factory=dict)
+
     # RDP / Remote Desktop
     rdp_mode: bool = field(default_factory=lambda: os.getenv("VOCIX_RDP_MODE", "").lower() in ("1", "true", "yes"))
     clipboard_delay: float = 0.05   # Sekunden — in RDP auf 0.15-0.3 erhöhen
@@ -236,7 +242,109 @@ class Config:
         if isinstance(state.get("whisper_language_override"), str):
             config.whisper_language_override = state["whisper_language_override"]
 
+        # LLM-Provider-Block (rohes Dict; Resolution erfolgt lazy in llm_resolve)
+        if isinstance(state.get("llm"), dict):
+            config.llm = state["llm"]
+
         # __post_init__ erneut aufrufen, damit RDP-Delays korrekt sind,
         # falls rdp_mode aus state.json kam.
         config.__post_init__()
         return config
+
+    # ---- LLM-Provider-Resolution -------------------------------------------
+
+    _LLM_SLOTS = ("anthropic", "openai", "ollama")
+
+    def _llm_slot_dict(self, slot_id: str) -> dict:
+        return (self.llm.get("providers") or {}).get(slot_id) or {}
+
+    def _legacy_anthropic_present(self) -> bool:
+        return bool(self.anthropic_api_key)
+
+    def llm_resolve(self, slot_id: str) -> ProviderConfig:
+        """Liefert ProviderConfig für einen Slot. Berücksichtigt:
+        env-Overrides > state.json llm-Block > Legacy-Anthropic-Felder.
+        """
+        if slot_id not in self._LLM_SLOTS:
+            raise ValueError(f"Unknown LLM slot: {slot_id!r}")
+
+        slot = self._llm_slot_dict(slot_id)
+        api_key = slot.get("api_key", "")
+        base_url = slot.get("base_url", "")
+        model = slot.get("model", "")
+        timeout = slot.get("timeout", 15.0 if slot_id != "ollama" else 30.0)
+
+        # Legacy-Fallback nur für anthropic, nur wenn neues Schema leer
+        if slot_id == "anthropic" and not api_key and self._legacy_anthropic_present():
+            api_key = self.anthropic_api_key
+            model = model or self.anthropic_model
+            timeout = self.anthropic_timeout
+
+        # Env-Overrides (höchste Priorität)
+        prefix = f"VOCIX_LLM_{slot_id.upper()}_"
+        env_key = os.getenv(prefix + "API_KEY")
+        if env_key is not None:
+            api_key = env_key
+        env_url = os.getenv(prefix + "BASE_URL")
+        if env_url is not None:
+            base_url = env_url
+        env_model = os.getenv(prefix + "MODEL")
+        if env_model is not None:
+            model = env_model
+        env_timeout = os.getenv(prefix + "TIMEOUT")
+        if env_timeout is not None:
+            try:
+                timeout = float(env_timeout)
+            except ValueError:
+                pass
+
+        return ProviderConfig(
+            kind=slot_id, api_key=api_key, base_url=base_url, model=model, timeout=float(timeout),
+        )
+
+    def llm_default_slot(self) -> str:
+        """Default-Provider-Slot. Env > state.json > impliziter Legacy-Default."""
+        env = os.getenv("VOCIX_LLM_DEFAULT")
+        if env in self._LLM_SLOTS:
+            return env
+        configured = self.llm.get("default")
+        if configured in self._LLM_SLOTS:
+            return configured
+        if self._legacy_anthropic_present():
+            return "anthropic"
+        # Fallback: anthropic — der Resolve liefert dann eine leere Config,
+        # build_provider wirft ProviderError, LLMBackedProcessor fällt auf Clean.
+        return "anthropic"
+
+    def llm_mode_slot(self, mode: str) -> str:
+        """Slot für business/rage. Env > state.json > Default."""
+        if mode not in ("business", "rage"):
+            raise ValueError(f"Unknown LLM mode: {mode!r}")
+        env = os.getenv(f"VOCIX_LLM_{mode.upper()}")
+        if env in self._LLM_SLOTS:
+            return env
+        override = self.llm.get(mode)
+        if override in self._LLM_SLOTS:
+            return override
+        return self.llm_default_slot()
+
+    def llm_provider_for(self, mode: str) -> ProviderConfig:
+        return self.llm_resolve(self.llm_mode_slot(mode))
+
+    def llm_validated(self, slot_id: str) -> bool:
+        """Ob ein Slot benutzbar konfiguriert ist (für UI-Gating).
+        - anthropic/openai: explizites validated-Flag oder Legacy-Flag.
+        - ollama: base_url + model gesetzt reicht.
+        """
+        cfg = self.llm_resolve(slot_id)
+        if slot_id == "ollama":
+            return bool(cfg.base_url and cfg.model)
+        if not cfg.api_key:
+            return False
+        slot = self._llm_slot_dict(slot_id)
+        if slot.get("validated") is True:
+            return True
+        # Legacy: alter anthropic_key_validated-Flag in state.json
+        if slot_id == "anthropic":
+            return bool(load_state().get("anthropic_key_validated"))
+        return False
