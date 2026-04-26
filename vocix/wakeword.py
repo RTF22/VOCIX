@@ -70,7 +70,7 @@ class WakeWordListener:
                 target=self._run, name="WakeWordListener", daemon=True
             )
             self._thread.start()
-            logger.info("Wake-Word-Listener gestartet (Modell: %s)", self._model_name)
+            logger.info("Wake-word listener started (model: %s)", self._model_name)
 
     def stop(self) -> None:
         with self._lock:
@@ -79,7 +79,7 @@ class WakeWordListener:
             self._thread = None
         if thread is not None:
             thread.join(timeout=2.0)
-            logger.info("Wake-Word-Listener gestoppt")
+            logger.info("Wake-word listener stopped")
 
     @property
     def is_running(self) -> bool:
@@ -92,14 +92,14 @@ class WakeWordListener:
             import sounddevice as sd
             from openwakeword.model import Model
         except Exception as e:
-            logger.error("Wake-Word-Abhängigkeiten fehlen: %s", e)
+            logger.error("Wake-word dependencies missing: %s", e)
             self._running.clear()
             return
 
         try:
             model = Model(wakeword_models=[self._model_name])
         except Exception as e:
-            logger.error("Wake-Word-Modell %r konnte nicht geladen werden: %s",
+            logger.error("Failed to load wake-word model %r: %s",
                          self._model_name, e)
             self._running.clear()
             return
@@ -119,11 +119,11 @@ class WakeWordListener:
                     try:
                         scores = model.predict(chunk)
                     except Exception as e:
-                        logger.warning("Wake-Word predict() fehlgeschlagen: %s", e)
+                        logger.warning("Wake-word predict() failed: %s", e)
                         continue
                     self._handle_scores(scores)
         except Exception as e:
-            logger.error("Wake-Word-Stream-Fehler: %s", e, exc_info=True)
+            logger.error("Wake-word stream error: %s", e, exc_info=True)
         finally:
             self._running.clear()
 
@@ -137,8 +137,8 @@ class WakeWordListener:
         if now - self._last_trigger < self._cooldown:
             return
         self._last_trigger = now
-        logger.info("Wake-Word erkannt (score=%.2f)", best)
+        logger.info("Wake-word detected (score=%.2f)", best)
         try:
             self._on_detect()
         except Exception as e:
-            logger.error("Wake-Word-Callback-Fehler: %s", e, exc_info=True)
+            logger.error("Wake-word callback error: %s", e, exc_info=True)

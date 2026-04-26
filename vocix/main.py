@@ -62,7 +62,7 @@ def _setup_logging(config: Config) -> None:
         file_handler.setFormatter(logging.Formatter(_LOG_FORMAT, datefmt=_LOG_DATE_FORMAT))
         root_logger.addHandler(file_handler)
     except OSError as e:
-        root_logger.warning("Logfile konnte nicht erstellt werden: %s", e)
+        root_logger.warning("Failed to create log file: %s", e)
 
 
 logger = logging.getLogger(__name__)
@@ -92,13 +92,13 @@ class VocixApp:
         self._quit_event = threading.Event()
 
         logger.info("=" * 50)
-        logger.info("VOCIX v%s startet...", __version__)
-        logger.info("Log-Level: %s | Logfile: %s", self._config.log_level, self._config.log_file)
+        logger.info("VOCIX v%s starting...", __version__)
+        logger.info("Log level: %s | Log file: %s", self._config.log_level, self._config.log_file)
         logger.info("Hotkey (PTT): %s", self._config.hotkey_record)
-        logger.info("Standard-Modus: %s", self._config.default_mode)
-        logger.info("API-Key: %s", "gesetzt" if self._config.anthropic_api_key else "NICHT gesetzt (Modus B/C → Fallback auf A)")
+        logger.info("Default mode: %s", self._config.default_mode)
+        logger.info("API key: %s", "set" if self._config.anthropic_api_key else "NOT set (modes B/C fall back to A)")
         if self._config.rdp_mode:
-            logger.info("RDP-Modus: aktiv")
+            logger.info("RDP mode: active")
         logger.info("=" * 50)
 
         # Komponenten
@@ -113,9 +113,9 @@ class VocixApp:
             # Pre-AVX-CPU oder fehlende CUDA-Libs bei explizitem GPU-Wunsch.
             # Wenn der User "gpu" forciert hat, retten wir den Start mit CPU
             # und melden im Overlay — sonst harter Abbruch mit nativem Dialog.
-            logger.critical("Whisper-Modell konnte nicht geladen werden: %s", e, exc_info=True)
+            logger.critical("Failed to load Whisper model: %s", e, exc_info=True)
             if self._config.whisper_acceleration == "gpu":
-                logger.warning("GPU-Erzwingung schlug fehl — wechsle dauerhaft auf CPU")
+                logger.warning("GPU enforcement failed — switching permanently to CPU")
                 self._config.whisper_acceleration = "cpu"
                 with update_state() as state:
                     state["whisper_acceleration"] = "cpu"
@@ -178,7 +178,7 @@ class VocixApp:
         )
 
         self._overlay.show_temporary(t("overlay.ready"), "done")
-        logger.info("VOCIX bereit — Modus: %s | Sprache: %s",
+        logger.info("VOCIX ready — mode: %s | language: %s",
                     self._current_mode, self._config.language)
 
     def _set_mode(self, mode: str) -> None:
@@ -187,7 +187,7 @@ class VocixApp:
         proc = self._processors.get(mode)
         name = proc.name if proc else mode
         self._overlay.show_temporary(t("overlay.mode_switched", name=name), "done")
-        logger.info("Modus: %s", mode)
+        logger.info("Mode: %s", mode)
 
     def _set_language(self, code: str) -> None:
         """Tray-Callback: UI + Whisper-STT + Prozessor-Prompts umschalten."""
@@ -200,7 +200,7 @@ class VocixApp:
         # Tray-Menü neu aufbauen (Labels jetzt in neuer Sprache)
         self._tray.update_language(code)
         self._overlay.show_temporary(t("overlay.ready"), "done")
-        logger.info("Sprache gewechselt: %s", code)
+        logger.info("Language switched: %s", code)
 
     def _set_whisper_model(self, model: str) -> None:
         if model == self._config.whisper_model:
@@ -236,7 +236,7 @@ class VocixApp:
                 try:
                     new_stt = WhisperSTT(new_config)
                 except Exception as e:
-                    logger.error("Modellwechsel fehlgeschlagen (model=%s, accel=%s): %s",
+                    logger.error("Model switch failed (model=%s, accel=%s): %s",
                                  target_model, target_accel, e, exc_info=True)
                     self._overlay.show_temporary(
                         t("overlay.model_load_failed_active", active=self._config.whisper_model),
@@ -258,7 +258,7 @@ class VocixApp:
                     model=target_model,
                     acceleration=target_accel,
                 )
-                logger.info("Whisper-STT neu geladen: model=%s, device=%s",
+                logger.info("Whisper STT reloaded: model=%s, device=%s",
                             target_model, new_stt.device)
                 self._overlay.show_temporary(
                     t("overlay.model_loaded", name=target_model, device=new_stt.device.upper()),
@@ -282,7 +282,7 @@ class VocixApp:
             path = self._history.dump_text()
             os.startfile(str(path))
         except Exception as e:
-            logger.error("Verlauf-Öffnen fehlgeschlagen: %s", e, exc_info=True)
+            logger.error("History open failed: %s", e, exc_info=True)
             self._overlay.show_temporary(t("overlay.error"), "error")
 
     def _on_record_start(self) -> None:
@@ -293,15 +293,15 @@ class VocixApp:
             return
         with self._state_lock:
             if self._processing:
-                logger.debug("Aufnahme ignoriert — Pipeline läuft noch")
+                logger.debug("Recording ignored — pipeline still running")
                 return
         try:
             self._recorder.start()
             badge = t("overlay.translate_badge") if self._config.translate_to_english else None
             self._overlay.show(t("overlay.recording"), "recording", badge=badge)
-            logger.info(">> Aufnahme gestartet (Hotkey gedrückt)")
+            logger.info(">> Recording started (hotkey pressed)")
         except RuntimeError as e:
-            logger.error("Aufnahme fehlgeschlagen: %s", e)
+            logger.error("Recording failed: %s", e)
             self._overlay.show_temporary(str(e), "error")
 
     def _on_record_stop(self) -> None:
@@ -314,7 +314,7 @@ class VocixApp:
             # Modus beim Aufnahmeende einfrieren, damit ein Moduswechsel
             # während STT/Processing die laufende Pipeline nicht beeinflusst
             mode_snapshot = self._current_mode
-        logger.info(">> Aufnahme beendet (Hotkey losgelassen)")
+        logger.info(">> Recording stopped (hotkey released)")
         # Pipeline in separatem Thread, damit Hotkey-Handler nicht blockiert
         threading.Thread(target=self._process_pipeline, args=(mode_snapshot,), daemon=True).start()
 
@@ -322,22 +322,22 @@ class VocixApp:
         try:
             audio = self._recorder.stop()
             if audio is None:
-                logger.warning("Keine verwertbare Aufnahme (zu kurz oder zu leise)")
+                logger.warning("No usable recording (too short or too quiet)")
                 self._overlay.show_temporary(t("overlay.no_speech"), "error")
                 return
 
             duration = len(audio) / self._config.sample_rate
-            logger.info("   Audio: %.1fs aufgenommen", duration)
+            logger.info("   Audio: %.1fs recorded", duration)
 
             # STT
             self._overlay.show(t("overlay.transcribing"), "processing")
             raw_text = self._stt.transcribe(audio)
             if not raw_text.strip():
-                logger.warning("STT lieferte leeren Text")
+                logger.warning("STT returned empty text")
                 self._overlay.show_temporary(t("overlay.no_text"), "error")
                 return
 
-            logger.info("   Rohtext: \"%s\"", raw_text[:100] + ("..." if len(raw_text) > 100 else ""))
+            logger.info("   Raw text: \"%s\"", raw_text[:100] + ("..." if len(raw_text) > 100 else ""))
 
             # Transformation — Modus-Snapshot vom Aufnahmeende verwenden
             processor = self._processors.get(mode, self._processors["clean"])
@@ -345,7 +345,7 @@ class VocixApp:
             processed_text = processor.process(raw_text)
 
             if not processed_text.strip():
-                logger.warning("Prozessor lieferte leeres Ergebnis")
+                logger.warning("Processor returned empty result")
                 self._overlay.show_temporary(t("overlay.empty_result"), "error")
                 return
 
@@ -353,13 +353,13 @@ class VocixApp:
             # Prozessor, sodass Claude den Platzhalter unangetastet lässt.
             processed_text = self._snippets.expand(processed_text)
 
-            logger.info("   Ergebnis (%s): \"%s\"", processor.name,
+            logger.info("   Result (%s): \"%s\"", processor.name,
                         processed_text[:100] + ("..." if len(processed_text) > 100 else ""))
 
             # Einfügen
             self._injector.inject(processed_text)
             self._overlay.show_temporary(t("overlay.inserted"), "done")
-            logger.info("   Text eingefügt (%d Zeichen)", len(processed_text))
+            logger.info("   Text injected (%d chars)", len(processed_text))
 
             # History + Stats nach erfolgreichem Inject
             self._history.add(processed_text, mode)
@@ -367,7 +367,7 @@ class VocixApp:
             self._tray.refresh_history()
 
         except Exception as e:
-            logger.error("Pipeline-Fehler: %s", e, exc_info=True)
+            logger.error("Pipeline error: %s", e, exc_info=True)
             self._overlay.show_temporary(t("overlay.error"), "error")
         finally:
             with self._state_lock:
@@ -385,7 +385,7 @@ class VocixApp:
         keyboard.add_hotkey(self._config.hotkey_mode_b, lambda: self._set_mode("business"))
         keyboard.add_hotkey(self._config.hotkey_mode_c, lambda: self._set_mode("rage"))
 
-        logger.info("Hotkeys registriert: '%s' (PTT), %s/%s/%s (Modi)",
+        logger.info("Hotkeys registered: '%s' (PTT), %s/%s/%s (modes)",
                      record_key,
                      self._config.hotkey_mode_a,
                      self._config.hotkey_mode_b,
@@ -437,7 +437,7 @@ class VocixApp:
             self._overlay.show_settings(self._config, self.apply_settings)
 
     def _quit(self) -> None:
-        logger.info("VOCIX wird beendet...")
+        logger.info("VOCIX shutting down...")
         self._running = False
         if self._wakeword is not None:
             self._wakeword.stop()
@@ -445,7 +445,7 @@ class VocixApp:
         try:
             self._tray.stop()
         except Exception as e:
-            logger.warning("Tray-Stop fehlgeschlagen: %s", e)
+            logger.warning("Tray stop failed: %s", e)
         self._overlay.destroy()
         # tkinter-Thread kurz Zeit geben, sauber abzuräumen
         overlay_thread = getattr(self._overlay, "_thread", None)
@@ -477,7 +477,7 @@ class VocixApp:
 
     def _start_wakeword(self) -> None:
         if not wakeword.is_available():
-            logger.warning("Wake-Word angefordert, aber openwakeword fehlt")
+            logger.warning("Wake-word requested but openwakeword is missing")
             self._overlay.show_temporary(t("overlay.wakeword_unavailable"), "error")
             return
         if self._wakeword is None:
@@ -486,7 +486,7 @@ class VocixApp:
             self._wakeword.start()
             self._overlay.show_temporary(t("overlay.wakeword_on"), "done")
         except Exception as e:
-            logger.error("Wake-Word-Start fehlgeschlagen: %s", e, exc_info=True)
+            logger.error("Wake-word start failed: %s", e, exc_info=True)
             self._overlay.show_temporary(t("overlay.error"), "error")
 
     def _stop_wakeword(self) -> None:
@@ -542,7 +542,7 @@ class VocixApp:
                 if silence_run >= silence_seconds:
                     break
             if elapsed >= max_seconds:
-                logger.info("Wake-Word-Aufnahme: max_seconds erreicht")
+                logger.info("Wake-word recording: max_seconds reached")
                 break
 
         if self._recorder.is_recording:
@@ -554,11 +554,11 @@ class VocixApp:
         try:
             updater.install_update(info)
         except Exception as e:
-            logger.error("install_update fehlgeschlagen: %s", e, exc_info=True)
+            logger.error("install_update failed: %s", e, exc_info=True)
             self._overlay.show_temporary(t("overlay.error"), "error")
             raise
         # Helper läuft bereits und wartet auf Prozessende — sauber beenden.
-        logger.info("Update-Helper gestartet, beende VOCIX zum Austausch")
+        logger.info("Update helper started, shutting down VOCIX for replacement")
         self._quit()
         # Sicherheitsnetz: non-daemon Threads (audio, keyboard hooks, pystray)
         # können _quit() überleben und den Prozess am Leben halten — der
@@ -581,7 +581,7 @@ class VocixApp:
         if self._wakeword_enabled and wakeword.is_available():
             self._start_wakeword()
 
-        logger.info("VOCIX läuft. Zum Beenden: Tray-Icon → Beenden")
+        logger.info("VOCIX running. To quit: tray icon -> Quit")
         try:
             # Blockiert bis _quit() das Event setzt (aus Tray-Thread oder Ctrl+C).
             # keyboard.wait() blockiert auch nach unhook_all() weiter, daher

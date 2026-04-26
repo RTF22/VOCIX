@@ -31,7 +31,7 @@ def acquire() -> bool:
     kernel32.CreateMutexW.restype = ctypes.c_void_p
     handle = kernel32.CreateMutexW(None, False, _MUTEX_NAME)
     if not handle:
-        logger.warning("CreateMutexW fehlgeschlagen — Single-Instance-Schutz inaktiv")
+        logger.warning("CreateMutexW failed — single-instance guard inactive")
         return True
     if kernel32.GetLastError() == _ERROR_ALREADY_EXISTS:
         kernel32.CloseHandle(handle)

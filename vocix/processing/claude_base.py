@@ -31,9 +31,9 @@ class ClaudeProcessor(TextProcessor):
                     timeout=config.anthropic_timeout,
                 )
             except ImportError:
-                logger.warning("anthropic-Paket nicht installiert, %s-Modus nutzt Clean-Fallback", name)
+                logger.warning("anthropic package not installed, %s mode uses Clean fallback", name)
         else:
-            logger.warning("Kein ANTHROPIC_API_KEY gesetzt, %s-Modus nutzt Clean-Fallback", name)
+            logger.warning("No ANTHROPIC_API_KEY set, %s mode uses Clean fallback", name)
 
     @property
     def name(self) -> str:
@@ -44,7 +44,7 @@ class ClaudeProcessor(TextProcessor):
             return text
 
         if self._client is None:
-            logger.info("%s-Fallback auf Clean-Modus", self._name)
+            logger.info("%s falling back to Clean mode", self._name)
             return self._fallback.process(text)
 
         try:
@@ -55,7 +55,7 @@ class ClaudeProcessor(TextProcessor):
                 messages=[{"role": "user", "content": text}],
             )
         except Exception as e:
-            logger.error("Claude API Fehler (%s): %s — Fallback auf Clean", self._name, e)
+            logger.error("Claude API error (%s): %s — falling back to Clean", self._name, e)
             return self._fallback.process(text)
 
         # Claude kann theoretisch einen leeren content-Array oder einen
@@ -63,13 +63,13 @@ class ClaudeProcessor(TextProcessor):
         # .text-Zugriff crashen; sauber auf Clean-Fallback ausweichen.
         content = response.content if hasattr(response, "content") else None
         if not content or not hasattr(content[0], "text"):
-            logger.warning("%s: leere/ungültige Claude-Antwort — Fallback auf Clean", self._name)
+            logger.warning("%s: empty/invalid Claude response — falling back to Clean", self._name)
             return self._fallback.process(text)
 
         result = content[0].text.strip()
         if not result:
-            logger.warning("%s: leerer Text in Claude-Antwort — Fallback auf Clean", self._name)
+            logger.warning("%s: empty text in Claude response — falling back to Clean", self._name)
             return self._fallback.process(text)
 
-        logger.info("%s-Transformation erfolgreich", self._name)
+        logger.info("%s transformation succeeded", self._name)
         return result

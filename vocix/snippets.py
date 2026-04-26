@@ -59,9 +59,9 @@ class SnippetExpander:
                 json.dumps(DEFAULT_SNIPPETS, indent=2, ensure_ascii=False),
                 encoding="utf-8",
             )
-            logger.info("Snippets-Datei angelegt: %s", self._path)
+            logger.info("Snippets file created: %s", self._path)
         except OSError as e:
-            logger.warning("Snippets-Default konnte nicht geschrieben werden: %s", e)
+            logger.warning("Failed to write default snippets: %s", e)
 
     def _load(self) -> None:
         with self._lock:
@@ -77,12 +77,12 @@ class SnippetExpander:
                 if isinstance(data, dict):
                     self._snippets = {str(k): str(v) for k, v in data.items()}
                     self._mtime = mtime
-                    logger.debug("Snippets neu geladen: %d Einträge", len(self._snippets))
+                    logger.debug("Snippets reloaded: %d entries", len(self._snippets))
                 else:
-                    logger.warning("Snippets-Datei: erwarte JSON-Object, ignoriere")
+                    logger.warning("Snippets file: expected JSON object, ignoring")
                     self._snippets = {}
             except (OSError, json.JSONDecodeError) as e:
-                logger.warning("Snippets konnten nicht gelesen werden: %s", e)
+                logger.warning("Failed to read snippets: %s", e)
 
     def expand(self, text: str) -> str:
         if not text:

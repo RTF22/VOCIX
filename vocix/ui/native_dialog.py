@@ -29,7 +29,7 @@ def _message_box(title: str, body: str, flags: int) -> int:
         return int(ctypes.windll.user32.MessageBoxW(0, body, title, flags))
     except OSError as e:
         # Kein Windows / ctypes-Problem → Fallback auf stderr
-        logger.warning("MessageBoxW fehlgeschlagen: %s", e)
+        logger.warning("MessageBoxW failed: %s", e)
         print(f"\n[{title}]\n{body}\n")
         return _IDOK
 

@@ -67,7 +67,7 @@ def _fetch_latest_release(current_version: str) -> dict | None:
         with request.urlopen(req, timeout=_REQUEST_TIMEOUT) as response:
             return json.loads(response.read().decode("utf-8"))
     except (error.URLError, TimeoutError, json.JSONDecodeError, ValueError) as e:
-        logger.warning("Update-Check fehlgeschlagen: %s", e)
+        logger.warning("Update check failed: %s", e)
         return None
 
 
@@ -104,7 +104,7 @@ def check_latest(
         latest = _parse_version(tag)
         current = _parse_version(current_version)
     except ValueError as e:
-        logger.warning("Version-Parse fehlgeschlagen: %s", e)
+        logger.warning("Version parse failed: %s", e)
         return None
 
     if latest <= current:
@@ -112,7 +112,7 @@ def check_latest(
 
     normalized = ".".join(str(x) for x in latest)
     if skip_version and skip_version.lstrip("vV") == normalized:
-        logger.info("Update %s wurde vom User übersprungen", normalized)
+        logger.info("Update %s skipped by user", normalized)
         return None
 
     asset_url, asset_name, sha256 = _pick_asset(data)
@@ -138,7 +138,7 @@ def check_async(
             if info is not None:
                 on_update_found(info)
         except Exception as e:
-            logger.error("Update-Thread-Fehler: %s", e, exc_info=True)
+            logger.error("Update thread error: %s", e, exc_info=True)
 
     thread = threading.Thread(target=_run, name="UpdateChecker", daemon=True)
     thread.start()
@@ -168,7 +168,7 @@ def download_asset(
 ) -> Path:
     """Lädt das Release-ZIP. Raised RuntimeError bei Fehlern."""
     if not info.asset_url:
-        raise RuntimeError("Kein Asset-URL im Release gefunden")
+        raise RuntimeError("No asset URL in release")
     dest_dir.mkdir(parents=True, exist_ok=True)
     target = dest_dir / (info.asset_name or "vocix-update.zip")
 
@@ -193,14 +193,14 @@ def download_asset(
                     except Exception:
                         pass
     except (error.URLError, TimeoutError, OSError) as e:
-        raise RuntimeError(f"Download fehlgeschlagen: {e}") from e
+        raise RuntimeError(f"Download failed: {e}") from e
     return target
 
 
 def verify_sha256(path: Path, expected: str | None) -> bool:
     """True bei Match oder wenn kein Expected gesetzt."""
     if not expected:
-        logger.warning("Kein erwarteter SHA256 — überspringe Verifikation für %s", path.name)
+        logger.warning("No expected SHA256 — skipping verification for %s", path.name)
         return True
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -209,7 +209,7 @@ def verify_sha256(path: Path, expected: str | None) -> bool:
     actual = h.hexdigest().lower()
     expected = expected.strip().lower()
     if actual != expected:
-        logger.error("SHA256-Mismatch: erwartet=%s, tatsächlich=%s", expected, actual)
+        logger.error("SHA256 mismatch: expected=%s, actual=%s", expected, actual)
         return False
     return True
 

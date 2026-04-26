@@ -46,7 +46,7 @@ def load_state() -> dict:
             if STATE_FILE.exists():
                 return json.loads(STATE_FILE.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as e:
-            logger.warning("State-Datei konnte nicht gelesen werden: %s", e)
+            logger.warning("Failed to read state file: %s", e)
         return {}
 
 
@@ -57,7 +57,7 @@ def save_state(state: dict) -> None:
             STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
             STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
         except OSError as e:
-            logger.warning("State-Datei konnte nicht gespeichert werden: %s", e)
+            logger.warning("Failed to save state file: %s", e)
 
 
 @contextmanager

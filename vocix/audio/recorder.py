@@ -46,9 +46,9 @@ class AudioRecorder:
                 )
                 self._stream.start()
                 self._recording = True
-                logger.info("Aufnahme gestartet")
+                logger.info("Recording started")
             except sd.PortAudioError as e:
-                logger.error("Mikrofon nicht verfügbar: %s", e)
+                logger.error("Microphone unavailable: %s", e)
                 raise RuntimeError(t("error.mic_unavailable")) from e
 
     def stop(self) -> np.ndarray | None:
@@ -65,27 +65,27 @@ class AudioRecorder:
                     self._stream.stop()
                     self._stream.close()
                 except Exception as e:
-                    logger.warning("Fehler beim Stream-Shutdown: %s", e)
+                    logger.warning("Stream shutdown error: %s", e)
                 finally:
                     self._stream = None
 
         if not self._buffer:
-            logger.warning("Leerer Audio-Buffer")
+            logger.warning("Empty audio buffer")
             return None
 
         audio = np.concatenate(self._buffer, axis=0).flatten()
         duration = len(audio) / self._config.sample_rate
 
         if duration < self._config.min_duration:
-            logger.warning("Aufnahme zu kurz: %.2fs", duration)
+            logger.warning("Recording too short: %.2fs", duration)
             return None
 
         rms = np.sqrt(np.mean(audio**2))
         if rms < self._config.silence_threshold:
-            logger.warning("Aufnahme zu leise (RMS=%.4f)", rms)
+            logger.warning("Recording too quiet (RMS=%.4f)", rms)
             return None
 
-        logger.info("Aufnahme beendet: %.2fs, RMS=%.4f", duration, rms)
+        logger.info("Recording stopped: %.2fs, RMS=%.4f", duration, rms)
         return audio
 
     def _audio_callback(self, indata: np.ndarray, frames: int, time_info, status) -> None:
@@ -95,6 +95,6 @@ class AudioRecorder:
         if not self._recording:
             return
         if status:
-            logger.warning("Audio-Status: %s", status)
+            logger.warning("Audio status: %s", status)
         self._buffer.append(indata.copy())
         self._current_level = float(np.sqrt(np.mean(indata**2)))

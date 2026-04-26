@@ -41,7 +41,7 @@ class History:
                 if isinstance(data, list):
                     return [e for e in data if isinstance(e, dict) and "text" in e][-self._limit:]
         except (OSError, json.JSONDecodeError) as e:
-            logger.warning("History konnte nicht gelesen werden: %s", e)
+            logger.warning("Failed to read history: %s", e)
         return []
 
     def _save(self) -> None:
@@ -52,7 +52,7 @@ class History:
                 encoding="utf-8",
             )
         except OSError as e:
-            logger.warning("History konnte nicht gespeichert werden: %s", e)
+            logger.warning("Failed to save history: %s", e)
 
     def add(self, text: str, mode: str) -> None:
         if not text or not text.strip():
@@ -96,5 +96,5 @@ class History:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text("\n".join(lines), encoding="utf-8")
         except OSError as e:
-            logger.warning("Verlauf-Textdump fehlgeschlagen: %s", e)
+            logger.warning("History text dump failed: %s", e)
         return target

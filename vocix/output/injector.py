@@ -29,12 +29,12 @@ class TextInjector:
         self._clipboard_delay = config.clipboard_delay
         self._paste_delay = config.paste_delay
         if config.rdp_mode:
-            logger.info("TextInjector: RDP-Modus aktiv (clipboard_delay=%.2fs, paste_delay=%.2fs)",
+            logger.info("TextInjector: RDP mode active (clipboard_delay=%.2fs, paste_delay=%.2fs)",
                         self._clipboard_delay, self._paste_delay)
 
     def inject(self, text: str) -> None:
         if not text.strip():
-            logger.warning("Leerer Text, nichts einzufügen")
+            logger.warning("Empty text, nothing to inject")
             return
 
         # None signalisiert "Restore überspringen" — pyperclip.paste() liefert bei
@@ -64,10 +64,10 @@ class TextInjector:
             # einem langen Diktat/Business-Output wie eingefroren an.
             extra_delay = min(len(text) / 5000, 2.0)
             time.sleep(self._paste_delay + extra_delay)
-            logger.info("Text eingefügt (%d Zeichen, paste_delay=%.2fs)",
+            logger.info("Text injected (%d chars, paste_delay=%.2fs)",
                         len(text), self._paste_delay + extra_delay)
         except Exception as e:
-            logger.error("Fehler beim Einfügen: %s", e)
+            logger.error("Inject failed: %s", e)
             raise
         finally:
             time.sleep(self._clipboard_delay)

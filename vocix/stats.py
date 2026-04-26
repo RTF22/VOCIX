@@ -46,7 +46,7 @@ class Stats:
                 if isinstance(data, dict):
                     return data
         except (OSError, json.JSONDecodeError) as e:
-            logger.warning("Stats konnten nicht gelesen werden: %s", e)
+            logger.warning("Failed to read stats: %s", e)
         return {}
 
     def _save(self) -> None:
@@ -57,7 +57,7 @@ class Stats:
                 encoding="utf-8",
             )
         except OSError as e:
-            logger.warning("Stats konnten nicht gespeichert werden: %s", e)
+            logger.warning("Failed to save stats: %s", e)
 
     def record(self, text: str, mode: str) -> None:
         if not text:

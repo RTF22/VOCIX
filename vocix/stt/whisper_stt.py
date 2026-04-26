@@ -24,7 +24,7 @@ def cuda_available() -> bool:
         import ctranslate2
         return ctranslate2.get_cuda_device_count() > 0
     except Exception as e:
-        logger.debug("CUDA-Check fehlgeschlagen: %s", e)
+        logger.debug("CUDA check failed: %s", e)
         return False
 
 
@@ -55,7 +55,7 @@ class WhisperSTT(STTEngine):
 
         device, compute_type = _resolve_device(config.whisper_acceleration)
         logger.info(
-            "Lade Whisper-Modell '%s' (device=%s, compute=%s, Verzeichnis: %s)...",
+            "Loading Whisper model '%s' (device=%s, compute=%s, dir=%s)...",
             config.whisper_model, device, compute_type, model_dir,
         )
         # CTranslate2 wirft hier bei pre-AVX-CPUs (RuntimeError/OSError) sowie
@@ -73,9 +73,9 @@ class WhisperSTT(STTEngine):
                 download_root=str(model_dir),
                 local_files_only=True,
             )
-            logger.info("Whisper-Modell offline aus Cache geladen")
+            logger.info("Whisper model loaded offline from cache")
         except (FileNotFoundError, OSError, ValueError) as e:
-            logger.info("Modell nicht im Cache (%s) — lade von HuggingFace", e)
+            logger.info("Model not in cache (%s) — downloading from HuggingFace", e)
             self._model = WhisperModel(
                 config.whisper_model,
                 device=device,
@@ -84,7 +84,7 @@ class WhisperSTT(STTEngine):
             )
         self._device = device
         self._compute_type = compute_type
-        logger.info("Whisper-Modell geladen (device=%s)", device)
+        logger.info("Whisper model loaded (device=%s)", device)
 
     @property
     def device(self) -> str:
@@ -101,6 +101,6 @@ class WhisperSTT(STTEngine):
         segments, info = self._model.transcribe(audio, **kwargs)
         text = " ".join(segment.text.strip() for segment in segments)
         task = kwargs.get("task", "transcribe")
-        logger.info("Transkription (task=%s, source=%s, %.0f%% Konfidenz): %s",
+        logger.info("Transcription (task=%s, source=%s, %.0f%% confidence): %s",
                      task, info.language, info.language_probability * 100, text)
         return text

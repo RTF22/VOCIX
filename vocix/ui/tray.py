@@ -275,7 +275,7 @@ class TrayApp:
         try:
             os.startfile(str(path))  # type: ignore[attr-defined]
         except (AttributeError, OSError) as e:
-            logger.warning("Snippets-Datei konnte nicht geöffnet werden: %s", e)
+            logger.warning("Failed to open snippets file: %s", e)
 
     def _show_stats(self) -> None:
         if self._stats is None:
@@ -310,7 +310,7 @@ class TrayApp:
 
     def set_update_available(self, info: "updater.UpdateInfo") -> None:
         self._update_info = info
-        logger.info("Update verfügbar: %s (%s)", info.version, info.url)
+        logger.info("Update available: %s (%s)", info.version, info.url)
         self._update_icon()
         self._notify(t("toast.update_body", version=info.version), "done")
 
@@ -329,7 +329,7 @@ class TrayApp:
             try:
                 cb(info)
             except Exception as e:
-                logger.error("Update-Install fehlgeschlagen: %s", e, exc_info=True)
+                logger.error("Update install failed: %s", e, exc_info=True)
                 self._notify(t("toast.update_failed"), "error")
 
         threading.Thread(target=_run, name="UpdateInstaller", daemon=True).start()
@@ -339,17 +339,17 @@ class TrayApp:
             return
         with config_module.update_state() as state:
             state["skip_update_version"] = self._update_info.version
-        logger.info("Update %s wird übersprungen", self._update_info.version)
+        logger.info("Update %s skipped", self._update_info.version)
         self._update_info = None
         self._update_icon()
 
     def _on_manual_check(self) -> None:
         def _run():
-            logger.info("Manueller Update-Check angestoßen")
+            logger.info("Manual update check triggered")
             self._notify(t("toast.checking"), "processing")
             info = updater.check_latest(__version__, skip_version=None)
             if info is None:
-                logger.info("Update-Check: bereits aktuell")
+                logger.info("Update check: already up to date")
                 self._notify(t("toast.up_to_date"), "done")
             else:
                 self.set_update_available(info)
@@ -365,13 +365,13 @@ class TrayApp:
                 self._on_overlay_message(message, status)
                 return
             except Exception as e:
-                logger.warning("Overlay-Nachricht fehlgeschlagen: %s", e)
+                logger.warning("Overlay notify failed: %s", e)
         if self._icon is None:
             return
         try:
             self._icon.notify(message, title="VOCIX")
         except Exception as e:
-            logger.warning("Toast-Benachrichtigung fehlgeschlagen: %s", e)
+            logger.warning("Toast notification failed: %s", e)
 
     def _show_about(self) -> None:
         """Delegiert an den App-Callback, der den Dialog im Overlay-Tk-Thread
@@ -398,7 +398,7 @@ class TrayApp:
         self._update_icon()
         toast_key = "toast.wakeword_on" if self._wakeword_enabled else "toast.wakeword_off"
         self._notify(t(toast_key), "done")
-        logger.info("Wake-Word: %s", self._wakeword_enabled)
+        logger.info("Wake-word: %s", self._wakeword_enabled)
 
     def update_wakeword(self, enabled: bool) -> None:
         self._wakeword_enabled = enabled
@@ -412,7 +412,7 @@ class TrayApp:
         self._current_mode = mode
         self._on_mode_change(mode)
         self._update_icon()
-        logger.info("Modus gewechselt: %s", mode)
+        logger.info("Mode changed: %s", mode)
 
     def _switch_language(self, code: str) -> None:
         if code == self._current_language:
@@ -451,7 +451,7 @@ class TrayApp:
         )
         self._thread = threading.Thread(target=self._icon.run, daemon=True)
         self._thread.start()
-        logger.info("Tray-Icon gestartet")
+        logger.info("Tray icon started")
 
     def refresh(self) -> None:
         """Tray-Icon und Menü neu aufbauen — z.B. nach apply_settings, wenn
@@ -485,7 +485,7 @@ class TrayApp:
         if value == self._whisper_acceleration:
             return
         if value == "gpu" and not self._cuda_available:
-            logger.warning("GPU-Auswahl ignoriert — kein CUDA verfügbar")
+            logger.warning("GPU selection ignored — no CUDA available")
             return
         if self._on_whisper_acceleration_change is not None:
             self._on_whisper_acceleration_change(value)
