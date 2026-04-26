@@ -14,6 +14,7 @@ from tkinter import ttk
 from typing import Callable
 
 from vocix.config import Config
+from vocix import i18n
 from vocix.i18n import t
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ def _ping_anthropic(api_key: str, model: str, timeout: float) -> bool:
         )
         return True
     except Exception as e:
-        logger.info("Anthropic-Ping fehlgeschlagen: %s", e)
+        logger.info("Anthropic ping failed: %s", e)
         return False
 
 
@@ -81,7 +82,8 @@ class SettingsDialog:
 
         btn_bar = ttk.Frame(self._win)
         btn_bar.pack(fill="x", padx=10, pady=10)
-        ttk.Button(btn_bar, text=t("settings.button.ok"), command=self._on_ok).pack(side="right", padx=4)
+        self._ok_btn = ttk.Button(btn_bar, text=t("settings.button.ok"), command=self._on_ok)
+        self._ok_btn.pack(side="right", padx=4)
         ttk.Button(btn_bar, text=t("settings.button.cancel"), command=self._on_cancel).pack(side="right", padx=4)
         self._apply_btn = ttk.Button(btn_bar, text=t("settings.button.apply"), command=self._on_apply)
         self._apply_btn.pack(side="right", padx=4)
@@ -99,6 +101,11 @@ class SettingsDialog:
             self._win.grab_set()
         except tk.TclError:
             pass
+
+        # If the user switches the UI language via the tray while this dialog
+        # is open, we don't rebuild every label live — we just disable the
+        # save buttons and surface a notice telling them to reopen the dialog.
+        i18n.register_language_listener(self._on_external_language_change)
 
     def _build_basics(self, frame: ttk.Frame) -> None:
         from vocix.ui.tooltip import Tooltip
@@ -201,8 +208,9 @@ class SettingsDialog:
         self._api_entry.bind("<FocusIn>", _on_focus_in)
         self._api_entry.bind("<FocusOut>", _on_focus_out)
 
-        ttk.Button(frame, text=t("settings.button.test"), command=self._on_test_api).grid(
-            row=row, column=2, padx=4)
+        test_btn = ttk.Button(frame, text=t("settings.button.test"), command=self._on_test_api)
+        test_btn.grid(row=row, column=2, padx=4)
+        Tooltip(test_btn, lambda: t("settings.tooltip.test_button"))
         self._var_api_status = tk.StringVar(value=t("settings.status.api_unchecked"))
         ttk.Label(frame, textvariable=self._var_api_status).grid(row=row, column=3, sticky="w")
         Tooltip(self._api_entry, lambda: t("settings.tooltip.api_key"))
@@ -245,8 +253,9 @@ class SettingsDialog:
                              command=lambda a=attr, c=allow_combo: self._capture_hotkey(a, c))
             btn.grid(row=row, column=2, padx=4)
             self._hotkey_widgets[attr] = (cb, btn)
-            if attr == "hotkey_record":
-                Tooltip(cb, lambda: t("settings.tooltip.hotkey_record"))
+            tooltip_key = f"settings.tooltip.{attr}"
+            Tooltip(cb, lambda k=tooltip_key: t(k))
+            Tooltip(btn, lambda: t("settings.tooltip.other_key_button"))
             row += 1
 
         self._refresh_api_gated_widgets()
@@ -332,13 +341,15 @@ class SettingsDialog:
 
         row = 0
 
-        def _path_row(label_key, attr, askdir):
+        def _path_row(label_key, attr, askdir, tooltip_key=None):
             nonlocal row
             ttk.Label(frame, text=t(label_key)).grid(row=row, column=0, sticky="w", pady=4)
             var = tk.StringVar(value=getattr(self._draft, attr))
             entry = ttk.Entry(frame, textvariable=var)
             entry.grid(row=row, column=1, sticky="ew")
             entry.bind("<FocusOut>", lambda _e: setattr(self._draft, attr, var.get()))
+            if tooltip_key:
+                Tooltip(entry, lambda k=tooltip_key: t(k))
 
             def browse():
                 import os
@@ -355,19 +366,26 @@ class SettingsDialog:
                         initialdir=init_dir or None,
                         initialfile=init_file or None,
                         defaultextension=".log",
-                        filetypes=[("Log-Datei", "*.log"), ("Alle Dateien", "*.*")],
+                        filetypes=[
+                            (t("settings.filter.log_file"), "*.log"),
+                            (t("settings.filter.all_files"), "*.*"),
+                        ],
                         confirmoverwrite=False,
                     )
                 if p:
                     var.set(p)
                     setattr(self._draft, attr, p)
 
-            ttk.Button(frame, text=t("settings.button.browse"), command=browse).grid(row=row, column=2, padx=4)
+            browse_btn = ttk.Button(frame, text=t("settings.button.browse"), command=browse)
+            browse_btn.grid(row=row, column=2, padx=4)
+            Tooltip(browse_btn, lambda: t("settings.tooltip.browse_button"))
             row += 1
             return var
 
-        self._var_model_dir = _path_row("settings.field.model_dir", "whisper_model_dir", askdir=True)
-        self._var_log_file = _path_row("settings.field.log_file", "log_file", askdir=False)
+        self._var_model_dir = _path_row("settings.field.model_dir", "whisper_model_dir", askdir=True,
+                                        tooltip_key="settings.tooltip.model_dir")
+        self._var_log_file = _path_row("settings.field.log_file", "log_file", askdir=False,
+                                       tooltip_key="settings.tooltip.log_file")
 
         ttk.Label(frame, text=t("settings.field.log_level")).grid(row=row, column=0, sticky="w", pady=4)
         self._var_log_level = tk.StringVar(value=self._draft.log_level)
@@ -376,6 +394,7 @@ class SettingsDialog:
         cb.grid(row=row, column=1, sticky="w")
         cb.bind("<<ComboboxSelected>>",
                 lambda _e: setattr(self._draft, "log_level", self._var_log_level.get()))
+        Tooltip(cb, lambda: t("settings.tooltip.log_level"))
         row += 1
 
         ttk.Label(frame, text=t("settings.field.overlay_seconds")).grid(row=row, column=0, sticky="w", pady=4)
@@ -385,11 +404,14 @@ class SettingsDialog:
                         command=lambda: setattr(self._draft, "overlay_display_seconds",
                                                float(self._var_overlay.get())))
         sp.grid(row=row, column=1, sticky="w")
+        Tooltip(sp, lambda: t("settings.tooltip.overlay_seconds"))
         row += 1
 
         ttk.Label(frame, text=t("settings.field.rdp_mode")).grid(row=row, column=0, sticky="w", pady=4)
         self._var_rdp = tk.BooleanVar(value=self._draft.rdp_mode)
-        ttk.Checkbutton(frame, variable=self._var_rdp, command=self._on_rdp_changed).grid(row=row, column=1, sticky="w")
+        rdp_check = ttk.Checkbutton(frame, variable=self._var_rdp, command=self._on_rdp_changed)
+        rdp_check.grid(row=row, column=1, sticky="w")
+        Tooltip(rdp_check, lambda: t("settings.tooltip.rdp_mode"))
         HelpButton(frame,
                    title_provider=lambda: t("settings.help.rdp_mode.title"),
                    body_provider=lambda: t("settings.help.rdp_mode.body")
@@ -403,6 +425,7 @@ class SettingsDialog:
                                           command=lambda: setattr(self._draft, "clipboard_delay",
                                                                  float(self._var_clipboard.get())))
         self._clipboard_spin.grid(row=row, column=1, sticky="w")
+        Tooltip(self._clipboard_spin, lambda: t("settings.tooltip.clipboard_delay"))
         row += 1
 
         ttk.Label(frame, text=t("settings.field.paste_delay")).grid(row=row, column=0, sticky="w", pady=4)
@@ -412,6 +435,7 @@ class SettingsDialog:
                                        command=lambda: setattr(self._draft, "paste_delay",
                                                               float(self._var_paste.get())))
         self._paste_spin.grid(row=row, column=1, sticky="w")
+        Tooltip(self._paste_spin, lambda: t("settings.tooltip.paste_delay"))
         row += 1
 
         ttk.Label(frame, text=t("settings.field.silence_threshold")).grid(row=row, column=0, sticky="w", pady=4)
@@ -429,11 +453,12 @@ class SettingsDialog:
 
         ttk.Label(frame, text=t("settings.field.min_duration")).grid(row=row, column=0, sticky="w", pady=4)
         self._var_min_dur = tk.DoubleVar(value=self._draft.min_duration)
-        ttk.Spinbox(frame, from_=0.1, to=5.0, increment=0.1, width=8,
-                   textvariable=self._var_min_dur,
-                   command=lambda: setattr(self._draft, "min_duration",
-                                          float(self._var_min_dur.get()))
-                   ).grid(row=row, column=1, sticky="w")
+        min_dur_spin = ttk.Spinbox(frame, from_=0.1, to=5.0, increment=0.1, width=8,
+                                   textvariable=self._var_min_dur,
+                                   command=lambda: setattr(self._draft, "min_duration",
+                                                          float(self._var_min_dur.get())))
+        min_dur_spin.grid(row=row, column=1, sticky="w")
+        Tooltip(min_dur_spin, lambda: t("settings.tooltip.min_duration"))
         row += 1
 
         self._on_rdp_changed()
@@ -450,6 +475,7 @@ class SettingsDialog:
     def _build_expert(self, frame: ttk.Frame) -> None:
         import os
         from vocix.ui.help_popup import HelpButton
+        from vocix.ui.tooltip import Tooltip
 
         for col in (1,):
             frame.columnconfigure(col, weight=1)
@@ -463,6 +489,7 @@ class SettingsDialog:
         cb.bind("<<ComboboxSelected>>",
                 lambda _e: setattr(self._draft, "whisper_language_override",
                                   "" if self._var_whisper_lang.get() == "auto" else self._var_whisper_lang.get()))
+        Tooltip(cb, lambda: t("settings.tooltip.whisper_language_override"))
         HelpButton(frame,
                    title_provider=lambda: t("settings.help.whisper_language_override.title"),
                    body_provider=lambda: t("settings.help.whisper_language_override.body")
@@ -476,6 +503,7 @@ class SettingsDialog:
         cb.grid(row=row, column=1, sticky="w")
         cb.bind("<<ComboboxSelected>>",
                 lambda _e: setattr(self._draft, "sample_rate", int(self._var_sample_rate.get())))
+        Tooltip(cb, lambda: t("settings.tooltip.sample_rate"))
         HelpButton(frame,
                    title_provider=lambda: t("settings.help.sample_rate.title"),
                    body_provider=lambda: t("settings.help.sample_rate.body")
@@ -483,7 +511,7 @@ class SettingsDialog:
         row += 1
 
         # Anthropic
-        self._anthropic_frame = ttk.LabelFrame(frame, text="Anthropic", padding=8)
+        self._anthropic_frame = ttk.LabelFrame(frame, text=t("settings.section.anthropic"), padding=8)
         self._anthropic_locked_label = ttk.Label(frame, text=t("settings.status.api_locked"),
                                                  foreground="#888")
 
@@ -494,6 +522,7 @@ class SettingsDialog:
         ac.grid(row=0, column=1, sticky="w")
         ac.bind("<FocusOut>",
                 lambda _e: setattr(self._draft, "anthropic_model", self._var_anth_model.get().strip()))
+        Tooltip(ac, lambda: t("settings.tooltip.anthropic_model"))
         HelpButton(self._anthropic_frame,
                    title_provider=lambda: t("settings.help.anthropic_model.title"),
                    body_provider=lambda: t("settings.help.anthropic_model.body")
@@ -501,21 +530,25 @@ class SettingsDialog:
 
         ttk.Label(self._anthropic_frame, text=t("settings.field.anthropic_timeout")).grid(row=1, column=0, sticky="w", pady=4)
         self._var_anth_timeout = tk.DoubleVar(value=self._draft.anthropic_timeout)
-        ttk.Spinbox(self._anthropic_frame, from_=5, to=60, increment=1, width=8,
-                   textvariable=self._var_anth_timeout,
-                   command=lambda: setattr(self._draft, "anthropic_timeout",
-                                          float(self._var_anth_timeout.get()))
-                   ).grid(row=1, column=1, sticky="w")
+        timeout_spin = ttk.Spinbox(self._anthropic_frame, from_=5, to=60, increment=1, width=8,
+                                   textvariable=self._var_anth_timeout,
+                                   command=lambda: setattr(self._draft, "anthropic_timeout",
+                                                          float(self._var_anth_timeout.get())))
+        timeout_spin.grid(row=1, column=1, sticky="w")
+        Tooltip(timeout_spin, lambda: t("settings.tooltip.anthropic_timeout"))
 
         self._show_anthropic_section(self._key_validated())
         row += 1
 
         # Buttons (Reihe 4 vorgeschoben damit Anthropic darüber Platz hat)
-        ttk.Button(frame, text=t("settings.button.open_config_dir"),
-                   command=lambda: os.startfile(self._config_dir())
-                   ).grid(row=row + 2, column=0, sticky="w", pady=(20, 4))
-        ttk.Button(frame, text=t("settings.button.reset"),
-                   command=self._on_factory_reset).grid(row=row + 2, column=1, sticky="w", pady=(20, 4))
+        cfg_btn = ttk.Button(frame, text=t("settings.button.open_config_dir"),
+                             command=lambda: os.startfile(self._config_dir()))
+        cfg_btn.grid(row=row + 2, column=0, sticky="w", pady=(20, 4))
+        Tooltip(cfg_btn, lambda: t("settings.tooltip.open_config_dir_button"))
+        reset_btn = ttk.Button(frame, text=t("settings.button.reset"),
+                               command=self._on_factory_reset)
+        reset_btn.grid(row=row + 2, column=1, sticky="w", pady=(20, 4))
+        Tooltip(reset_btn, lambda: t("settings.tooltip.reset_button"))
 
     def _config_dir(self) -> str:
         from vocix.config import STATE_FILE
@@ -536,7 +569,7 @@ class SettingsDialog:
             return
         save_state({})
         self._draft = replace(Config())
-        messagebox.showinfo(t("settings.title"), "Bitte Dialog neu öffnen.")
+        messagebox.showinfo(t("settings.title"), t("settings.confirm.factory_reset_done"))
         self._on_cancel()
 
     def _validate(self) -> bool:
@@ -572,7 +605,34 @@ class SettingsDialog:
 
     def destroy(self) -> None:
         try:
+            i18n.unregister_language_listener(self._on_external_language_change)
+        except Exception:
+            pass
+        try:
             self._win.grab_release()
             self._win.destroy()
+        except tk.TclError:
+            pass
+
+    def _on_external_language_change(self, _code: str) -> None:
+        """Tray switched the UI language while this dialog is open. We can't
+        cheaply rebuild every label, so we lock saving and show a notice
+        telling the user to reopen the dialog."""
+        try:
+            if not self._win.winfo_exists():
+                return
+        except tk.TclError:
+            return
+
+        def _apply():
+            try:
+                self._error_var.set(t("settings.notice.language_changed"))
+                self._apply_btn.state(["disabled"])
+                self._ok_btn.state(["disabled"])
+            except tk.TclError:
+                pass
+
+        try:
+            self._win.after(0, _apply)
         except tk.TclError:
             pass
