@@ -12,8 +12,17 @@ from vocix.i18n import t
 def show_help(parent: tk.Misc, title: str, body: str) -> tk.Toplevel:
     win = tk.Toplevel(parent)
     win.title(title)
-    win.transient(parent.winfo_toplevel())
-    win.geometry("420x240")
+    top = parent.winfo_toplevel()
+    win.transient(top)
+    # Position relativ zur linken oberen Ecke des Parent-Fensters mit
+    # Offset — nicht auf Bildschirm-(0,0).
+    try:
+        top.update_idletasks()
+        x = top.winfo_rootx() + 40
+        y = top.winfo_rooty() + 40
+        win.geometry(f"420x240+{x}+{y}")
+    except tk.TclError:
+        win.geometry("420x240")
     win.resizable(False, False)
 
     text = tk.Text(win, wrap="word", padx=12, pady=10, height=10, relief="flat")

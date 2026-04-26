@@ -49,9 +49,16 @@ class SettingsDialog:
         self._win = tk.Toplevel(parent)
         self._win.title(t("settings.title"))
         self._win.geometry("640x540")
-        self._win.transient(parent.winfo_toplevel())
+        # transient() nur, wenn der Parent ein sichtbares Toplevel ist —
+        # sonst (Overlay-Root mit overrideredirect+withdraw) bleibt das
+        # Toplevel ungemappt/unsichtbar.
+        try:
+            top = parent.winfo_toplevel()
+            if top.winfo_viewable():
+                self._win.transient(top)
+        except tk.TclError:
+            pass
         self._win.protocol("WM_DELETE_WINDOW", self._on_cancel)
-        self._win.grab_set()
 
         self.notebook = ttk.Notebook(self._win)
         self.notebook.pack(fill="both", expand=True, padx=10, pady=(10, 0))
@@ -78,6 +85,20 @@ class SettingsDialog:
         ttk.Button(btn_bar, text=t("settings.button.cancel"), command=self._on_cancel).pack(side="right", padx=4)
         self._apply_btn = ttk.Button(btn_bar, text=t("settings.button.apply"), command=self._on_apply)
         self._apply_btn.pack(side="right", padx=4)
+
+        # Sichtbarkeit + Fokus erzwingen (Parent kann ein versteckter
+        # overrideredirect-Root sein); grab_set() erst NACH dem Mappen,
+        # sonst läuft ein Geist-Grab auf einem unsichtbaren Fenster.
+        self._win.update_idletasks()
+        self._win.deiconify()
+        self._win.lift()
+        self._win.attributes("-topmost", True)
+        self._win.after(100, lambda: self._win.attributes("-topmost", False))
+        self._win.focus_force()
+        try:
+            self._win.grab_set()
+        except tk.TclError:
+            pass
 
     def _build_basics(self, frame: ttk.Frame) -> None:
         from vocix.ui.tooltip import Tooltip
@@ -320,10 +341,23 @@ class SettingsDialog:
             entry.bind("<FocusOut>", lambda _e: setattr(self._draft, attr, var.get()))
 
             def browse():
+                import os
+                current = var.get() or str(getattr(self._draft, attr) or "")
                 if askdir:
-                    p = filedialog.askdirectory(initialdir=var.get() or None)
+                    p = filedialog.askdirectory(initialdir=current or None)
                 else:
-                    p = filedialog.asksaveasfilename(initialdir=str(getattr(self._draft, attr) or ""))
+                    init_dir = os.path.dirname(current) if current else ""
+                    init_file = os.path.basename(current) if current else ""
+                    # Datei auswählen — vorhandene wird gewählt, nicht
+                    # überschrieben (confirmoverwrite=False), neuer Pfad
+                    # ist auch erlaubt.
+                    p = filedialog.asksaveasfilename(
+                        initialdir=init_dir or None,
+                        initialfile=init_file or None,
+                        defaultextension=".log",
+                        filetypes=[("Log-Datei", "*.log"), ("Alle Dateien", "*.*")],
+                        confirmoverwrite=False,
+                    )
                 if p:
                     var.set(p)
                     setattr(self._draft, attr, p)
