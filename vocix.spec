@@ -57,7 +57,7 @@ exe = EXE(
     strip=False,
     upx=False,  # UPX-Komprimierung deaktiviert — Hauptursache für Defender-FPs (Wacatac.H!ml)
     console=False,  # Kein Konsolenfenster
-    icon=None,      # Optional: .ico Datei hier angeben
+    icon="logo/vocix.ico",
 )
 
 coll = COLLECT(
