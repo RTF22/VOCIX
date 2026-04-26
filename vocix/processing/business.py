@@ -1,9 +1,9 @@
 from vocix.config import Config
-from vocix.processing.claude_base import ClaudeProcessor
+from vocix.processing.llm_backed import LLMBackedProcessor
 
 
-class BusinessProcessor(ClaudeProcessor):
-    """Modus B: Professionelle Geschäftssprache via Claude API."""
+class BusinessProcessor(LLMBackedProcessor):
+    """Modus B: Professionelle Geschäftssprache."""
 
     def __init__(self, config: Config):
-        super().__init__(config, name="Business", prompt_key="prompt.business")
+        super().__init__(config, name="Business", prompt_key="prompt.business", mode="business")
