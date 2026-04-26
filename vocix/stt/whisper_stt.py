@@ -61,12 +61,27 @@ class WhisperSTT(STTEngine):
         # CTranslate2 wirft hier bei pre-AVX-CPUs (RuntimeError/OSError) sowie
         # bei GPU-Wahl ohne cuDNN/cuBLAS. Caller entscheidet, ob das fatal ist
         # (Startup → Dialog + sys.exit) oder nur ein Toast (Laufzeit-Wechsel).
-        self._model = WhisperModel(
-            config.whisper_model,
-            device=device,
-            compute_type=compute_type,
-            download_root=str(model_dir),
-        )
+        #
+        # Erst offline laden — spart bei jedem Start einen HEAD-Request gegen
+        # HuggingFace. Fällt nur bei wirklich fehlendem Modell auf Online-
+        # Download zurück.
+        try:
+            self._model = WhisperModel(
+                config.whisper_model,
+                device=device,
+                compute_type=compute_type,
+                download_root=str(model_dir),
+                local_files_only=True,
+            )
+            logger.info("Whisper-Modell offline aus Cache geladen")
+        except (FileNotFoundError, OSError, ValueError) as e:
+            logger.info("Modell nicht im Cache (%s) — lade von HuggingFace", e)
+            self._model = WhisperModel(
+                config.whisper_model,
+                device=device,
+                compute_type=compute_type,
+                download_root=str(model_dir),
+            )
         self._device = device
         self._compute_type = compute_type
         logger.info("Whisper-Modell geladen (device=%s)", device)
