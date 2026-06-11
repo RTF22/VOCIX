@@ -1,12 +1,12 @@
 {
-    "version": "1.4.0",
+    "version": "1.4.1",
     "description": "Local voice dictation for Windows with global hotkey — Whisper STT + multi-provider LLM (Anthropic / OpenAI-compatible / Ollama).",
     "homepage": "https://github.com/RTF22/VOCIX",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/RTF22/VOCIX/releases/download/v1.4.0/VOCIX-v1.4.0-win-x64.zip",
-            "hash": "2029c69cf4e317f4ec61a3f52371dff1f1d3878561f6c033397e51169aaa55a3",
+            "url": "https://github.com/RTF22/VOCIX/releases/download/v1.4.1/VOCIX-v1.4.1-win-x64.zip",
+            "hash": "dc89780b28d14799ce6513c8f19d98551769b11662c881193ba2efed5eb1d474",
             "extract_dir": "VOCIX"
         }
     },
