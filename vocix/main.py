@@ -28,7 +28,7 @@ from vocix.processing.base import TextProcessor
 from vocix.processing.business import BusinessProcessor
 from vocix.processing.clean import CleanProcessor
 from vocix.processing.rage import RageProcessor
-from vocix.stt.whisper_stt import WhisperSTT, cuda_available
+from vocix.stt.whisper_stt import WhisperSTT, cuda_available, load_stt
 from vocix.ui import native_dialog
 from vocix.ui.overlay import StatusOverlay
 from vocix.ui.tray import TrayApp
@@ -107,33 +107,23 @@ class VocixApp:
 
         self._recorder = AudioRecorder(self._config)
         self._overlay.set_level_source(lambda: self._recorder.current_level)
+        # load_stt fällt bei float16-/CUDA-Fehlern auf dem GPU-Pfad (egal ob
+        # "gpu" erzwungen oder "auto"+CUDA gesehen) einmalig auf CPU/int8 zurück.
+        # Eine Exception bedeutet: auch CPU scheitert → echte pre-AVX-CPU.
         try:
-            self._stt = WhisperSTT(self._config)
+            self._stt, fell_back_to_cpu = load_stt(self._config)
         except Exception as e:
-            # Pre-AVX-CPU oder fehlende CUDA-Libs bei explizitem GPU-Wunsch.
-            # Wenn der User "gpu" forciert hat, retten wir den Start mit CPU
-            # und melden im Overlay — sonst harter Abbruch mit nativem Dialog.
-            logger.critical("Failed to load Whisper model: %s", e, exc_info=True)
-            if self._config.whisper_acceleration == "gpu":
-                logger.warning("GPU enforcement failed — switching permanently to CPU")
-                self._config.whisper_acceleration = "cpu"
-                with update_state() as state:
-                    state["whisper_acceleration"] = "cpu"
-                try:
-                    self._stt = WhisperSTT(self._config)
-                    self._overlay.show_temporary(t("overlay.gpu_unavailable"), "error")
-                except Exception as e2:
-                    native_dialog.show_error(
-                        t("error.cpu_unsupported_title"),
-                        t("error.cpu_unsupported_body", details=str(e2)[:200]),
-                    )
-                    sys.exit(1)
-            else:
-                native_dialog.show_error(
-                    t("error.cpu_unsupported_title"),
-                    t("error.cpu_unsupported_body", details=str(e)[:200]),
-                )
-                sys.exit(1)
+            logger.critical("Failed to load Whisper model on CPU: %s", e, exc_info=True)
+            native_dialog.show_error(
+                t("error.cpu_unsupported_title"),
+                t("error.cpu_unsupported_body", details=str(e)[:200]),
+            )
+            sys.exit(1)
+        if fell_back_to_cpu:
+            logger.warning("GPU path unavailable — switched permanently to CPU")
+            with update_state() as state:
+                state["whisper_acceleration"] = "cpu"
+            self._overlay.show_temporary(t("overlay.gpu_unavailable"), "error")
         self._stt_reload_lock = threading.Lock()
         self._injector = TextInjector(self._config)
         self._history = History()

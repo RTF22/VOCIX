@@ -45,6 +45,33 @@ def _resolve_device(acceleration: str) -> tuple[str, str]:
     return "cpu", "int8"
 
 
+def load_stt(config: Config) -> tuple["WhisperSTT", bool]:
+    """Lädt WhisperSTT und fällt bei Fehler auf dem GPU-Pfad einmalig auf CPU zurück.
+
+    Die Entscheidung fällt am effektiv aufgelösten Device, nicht am
+    acceleration-String — so deckt ein Fallback sowohl ``"gpu"`` (erzwungen)
+    als auch ``"auto"`` (CUDA gesehen, aber float16-untauglich) ab. Beim
+    Fallback wird ``config.whisper_acceleration`` auf ``"cpu"`` festgeschrieben,
+    damit App-Zustand und State-Persistenz konsistent bleiben.
+
+    Returns ``(stt, fell_back_to_cpu)``. Die ursprüngliche Exception wird nur
+    weitergereicht, wenn bereits der CPU-Pfad scheitert — das ist der echte
+    pre-AVX-Fall, in dem VOCIX auf dieser Maschine nicht lauffähig ist.
+    """
+    device, _ = _resolve_device(config.whisper_acceleration)
+    try:
+        return WhisperSTT(config), False
+    except Exception:
+        if device == "cpu":
+            raise  # CPU-Pfad gescheitert → wirklich fatal (keine AVX-CPU)
+        logger.warning(
+            "STT load on device=%s failed — falling back to CPU/int8",
+            device, exc_info=True,
+        )
+        config.whisper_acceleration = "cpu"
+        return WhisperSTT(config), True
+
+
 class WhisperSTT(STTEngine):
     """Speech-to-Text mit faster-whisper (CTranslate2)."""
 

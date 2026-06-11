@@ -117,3 +117,104 @@ def test_whisper_init_passes_device_and_compute_type(whisper_stub, tmp_path, mon
     init_kwargs = whisper_stub["init_kwargs"]
     assert init_kwargs["device"] == "cpu"
     assert init_kwargs["compute_type"] == "int8"
+
+
+@pytest.fixture
+def device_aware_whisper_stub(monkeypatch):
+    """WhisperModel-Stub, der auf device='cuda' fehlschlägt und auf 'cpu' lädt.
+
+    Bildet eine Maschine nach, die ein CUDA-Device sieht, dieses aber kein
+    effizientes float16 unterstützt (der reale Fehlerfall aus dem Bugreport).
+    Sammelt alle Init-kwargs in der Reihenfolge der Versuche.
+    """
+    captured = {"inits": []}
+
+    class _DeviceAwareModel:
+        def __init__(self, *args, **kwargs):
+            captured["inits"].append(kwargs)
+            if kwargs.get("device") == "cuda":
+                raise ValueError(
+                    "Requested float16 compute type, but the target device "
+                    "or backend do not support efficient float16 computation."
+                )
+            self.transcribe = MagicMock()
+            self.transcribe.return_value = (
+                iter([SimpleNamespace(text="ok")]),
+                SimpleNamespace(language="de", language_probability=0.9),
+            )
+
+    fake_module = types.ModuleType("faster_whisper")
+    fake_module.WhisperModel = _DeviceAwareModel
+    monkeypatch.setitem(sys.modules, "faster_whisper", fake_module)
+    sys.modules.pop("vocix.stt.whisper_stt", None)
+    return captured
+
+
+def test_load_stt_falls_back_to_cpu_when_auto_gpu_fails(device_aware_whisper_stub, tmp_path, monkeypatch):
+    import vocix.stt.whisper_stt as mod
+    monkeypatch.setattr(mod, "cuda_available", lambda: True)
+
+    cfg = _make_config(translate=False, tmp_path=tmp_path)
+    cfg.whisper_acceleration = "auto"
+
+    stt, fell_back = mod.load_stt(cfg)
+
+    assert fell_back is True
+    assert stt is not None
+    # acceleration wird auf cpu festgeschrieben, damit App + State konsistent sind
+    assert cfg.whisper_acceleration == "cpu"
+    # zwei Versuche: zuerst cuda/float16 (scheitert), dann cpu/int8 (gelingt)
+    inits = device_aware_whisper_stub["inits"]
+    assert inits[0]["device"] == "cuda"
+    assert inits[-1]["device"] == "cpu"
+    assert inits[-1]["compute_type"] == "int8"
+
+
+def test_load_stt_falls_back_to_cpu_when_gpu_forced_fails(device_aware_whisper_stub, tmp_path, monkeypatch):
+    import vocix.stt.whisper_stt as mod
+    monkeypatch.setattr(mod, "cuda_available", lambda: True)
+
+    cfg = _make_config(translate=False, tmp_path=tmp_path)
+    cfg.whisper_acceleration = "gpu"
+
+    stt, fell_back = mod.load_stt(cfg)
+
+    assert fell_back is True
+    assert cfg.whisper_acceleration == "cpu"
+
+
+def test_load_stt_no_fallback_when_cpu_succeeds(device_aware_whisper_stub, tmp_path, monkeypatch):
+    import vocix.stt.whisper_stt as mod
+    monkeypatch.setattr(mod, "cuda_available", lambda: False)
+
+    cfg = _make_config(translate=False, tmp_path=tmp_path)
+    cfg.whisper_acceleration = "cpu"
+
+    stt, fell_back = mod.load_stt(cfg)
+
+    assert fell_back is False
+    assert cfg.whisper_acceleration == "cpu"
+    assert len(device_aware_whisper_stub["inits"]) == 1
+
+
+def test_load_stt_reraises_when_cpu_path_also_fails(tmp_path, monkeypatch):
+    """Scheitert schon der CPU-Pfad, ist es der echte pre-AVX-Fall → Exception."""
+    import importlib
+    import sys as _sys
+
+    class _AlwaysFailModel:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("This CPU lacks AVX support")
+
+    fake_module = types.ModuleType("faster_whisper")
+    fake_module.WhisperModel = _AlwaysFailModel
+    monkeypatch.setitem(_sys.modules, "faster_whisper", fake_module)
+    _sys.modules.pop("vocix.stt.whisper_stt", None)
+    import vocix.stt.whisper_stt as mod
+    monkeypatch.setattr(mod, "cuda_available", lambda: False)
+
+    cfg = _make_config(translate=False, tmp_path=tmp_path)
+    cfg.whisper_acceleration = "cpu"
+
+    with pytest.raises(RuntimeError, match="AVX"):
+        mod.load_stt(cfg)
