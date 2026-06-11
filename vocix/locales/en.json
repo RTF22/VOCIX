@@ -10,10 +10,12 @@
   "mode.clean": "A: Clean",
   "mode.business": "B: Business",
   "mode.rage": "C: Rage",
+  "mode.latex": "L: LaTeX",
 
   "processor.clean": "Clean",
   "processor.business": "Business",
   "processor.rage": "Rage",
+  "processor.latex": "LaTeX",
 
   "tray.title": "VOCIX — {mode}",
   "tray.language": "Language / Sprache",
@@ -92,6 +94,7 @@
 
   "prompt.business": "You are a professional writing assistant for business communication.\n\nYour task:\n- Transform the spoken text into professional, formal written language.\n- The result should be suitable for e-mails, letters or business documents.\n- Improve structure, grammar and tone.\n- Remove filler words and colloquial expressions.\n- Preserve the original meaning exactly.\n- Respond ONLY with the rewritten text, no explanations or annotations.\n- Respond in the same language as the input text.",
   "prompt.rage": "You are a de-escalation assistant.\n\nYour task:\n- You receive text that may be aggressive, rude or emotionally charged.\n- Rewrite it into a polite, respectful and factual form.\n- The ORIGINAL MEANING and all factual arguments MUST be fully preserved.\n- Remove insults, profanity and aggressive phrasing.\n- Replace them with factual, constructive alternatives.\n- The tone should be firm but polite — not submissive.\n- Respond ONLY with the rewritten text, no explanations or annotations.\n- Respond in the same language as the input text.",
+  "prompt.latex": "You are a LaTeX converter for dictated text. Your only task: replace spoken mathematical expressions and formulas in the input text with LaTeX notation, wrapped in $...$ (inline) or $$...$$ (display/standalone equation).\n\nRules:\n- Do NOT modify non-mathematical prose. No rephrasing, no translation, no corrections, no comments.\n- Recognise common spoken forms: \"x squared\" → x^2, \"x to the n\" → x^n, \"square root of n\" → \\sqrt{n}, \"sum from i equals 1 to n\" → \\sum_{i=1}^{n}, \"integral from a to b\" → \\int_a^b, \"alpha/beta/gamma…\" → \\alpha/\\beta/\\gamma, \"infinity\" → \\infty, \"plus minus\" → \\pm, \"greater or equal\" → \\geq, \"less or equal\" → \\leq, \"not equal\" → \\neq, \"a over b\" → \\frac{a}{b}.\n- When in doubt whether something is mathematical: do NOT convert.\n- Reply with the converted text only — no markdown code fence, no preamble, no trailing remarks.",
 
   "settings": {
     "title": "VOCIX — Settings",
@@ -113,6 +116,7 @@
       "hotkey_mode_a": "Hotkey Clean mode",
       "hotkey_mode_b": "Hotkey Business mode",
       "hotkey_mode_c": "Hotkey Rage mode",
+      "hotkey_mode_d": "Hotkey LaTeX mode",
       "model_dir": "Model directory",
       "log_file": "Log file",
       "log_level": "Log level",
@@ -138,6 +142,7 @@
       "hotkey_mode_a": "Key combo that switches directly to Clean mode.",
       "hotkey_mode_b": "Key combo that switches directly to Business mode (requires API key).",
       "hotkey_mode_c": "Key combo that switches directly to Rage mode (requires API key).",
+      "hotkey_mode_d": "Key combo that switches directly to LaTeX mode (requires API key).",
       "model_dir": "Directory where Whisper models are cached (~75 MB to ~3 GB per model).",
       "log_file": "Path of the log file. Existing files are selected, not overwritten.",
       "log_level": "DEBUG shows everything, INFO is default, WARNING/ERROR shows problems only.",
@@ -243,6 +248,7 @@
   "settings.llm.default": "Default provider",
   "settings.llm.business_override": "Business",
   "settings.llm.rage_override": "Rage",
+  "settings.llm.latex_override": "LaTeX",
   "settings.llm.use_default": "Use default",
   "settings.llm.section.anthropic": "Anthropic (Claude)",
   "settings.llm.section.openai": "OpenAI-compatible",

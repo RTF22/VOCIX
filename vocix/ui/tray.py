@@ -20,15 +20,17 @@ _MODE_COLORS = {
     "clean": (46, 204, 113),      # Grün
     "business": (52, 152, 219),   # Blau
     "rage": (231, 76, 60),        # Rot
+    "latex": (155, 89, 182),      # Violett
 }
 
 _MODE_ACCENTS = {
     "clean": (39, 174, 96),
     "business": (41, 128, 185),
     "rage": (192, 57, 43),
+    "latex": (125, 60, 152),
 }
 
-_MODE_KEYS = ("clean", "business", "rage")
+_MODE_KEYS = ("clean", "business", "rage", "latex")
 
 # Whitelist für das Tray-Untermenü. faster-whisper akzeptiert mehr (HF-Repos),
 # aber im Menü beschränken wir uns auf die gängigen Größen.

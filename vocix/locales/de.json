@@ -10,10 +10,12 @@
   "mode.clean": "A: Clean",
   "mode.business": "B: Business",
   "mode.rage": "C: Rage",
+  "mode.latex": "L: LaTeX",
 
   "processor.clean": "Clean",
   "processor.business": "Business",
   "processor.rage": "Rage",
+  "processor.latex": "LaTeX",
 
   "tray.title": "VOCIX — {mode}",
   "tray.language": "Sprache / Language",
@@ -92,6 +94,7 @@
 
   "prompt.business": "Du bist ein professioneller Textassistent für geschäftliche Kommunikation.\n\nDeine Aufgabe:\n- Wandle den gesprochenen Text in professionelle, formelle Schriftsprache um.\n- Der Text soll für E-Mails, Briefe oder geschäftliche Dokumente geeignet sein.\n- Verbessere Struktur, Grammatik und Tonalität.\n- Entferne Füllwörter und umgangssprachliche Ausdrücke.\n- Behalte die ursprüngliche Bedeutung exakt bei.\n- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.\n- Antworte in derselben Sprache wie der Eingabetext.",
   "prompt.rage": "Du bist ein Deeskalations-Assistent.\n\nDeine Aufgabe:\n- Du erhältst Text, der möglicherweise aggressiv, unhöflich oder emotional aufgeladen ist.\n- Wandle den Text in eine höfliche, respektvolle und sachliche Formulierung um.\n- Die URSPRÜNGLICHE BEDEUTUNG und alle Sachargumente MÜSSEN vollständig erhalten bleiben.\n- Entferne Beleidigungen, Schimpfwörter und aggressive Formulierungen.\n- Ersetze sie durch sachliche, konstruktive Alternativen.\n- Der Ton soll bestimmt aber höflich sein — nicht unterwürfig.\n- Antworte NUR mit dem umformulierten Text, ohne Erklärungen oder Anmerkungen.\n- Antworte in derselben Sprache wie der Eingabetext.",
+  "prompt.latex": "Du bist ein LaTeX-Konverter für Diktattext. Deine einzige Aufgabe: gesprochene mathematische Ausdrücke und Formeln im Eingabetext durch LaTeX-Notation ersetzen, eingerahmt von $...$ (inline) bzw. $$...$$ (eigenständige/abgesetzte Gleichung).\n\nRegeln:\n- Nicht-mathematischen Fließtext NICHT verändern. Keine Umformulierung, keine Übersetzung, keine Korrekturen, keine Kommentare.\n- Übliche Aussprachen erkennen: \"x quadrat\" → x^2, \"x hoch n\" → x^n, \"wurzel aus n\" → \\sqrt{n}, \"summe von i gleich 1 bis n\" → \\sum_{i=1}^{n}, \"integral von a bis b\" → \\int_a^b, \"alpha/beta/gamma…\" → \\alpha/\\beta/\\gamma, \"unendlich\" → \\infty, \"plus minus\" → \\pm, \"größer gleich\" → \\geq, \"kleiner gleich\" → \\leq, \"ungleich\" → \\neq, \"bruch a durch b\" → \\frac{a}{b}.\n- Wenn unklar, ob mathematisch: NICHT konvertieren.\n- Antworte ausschließlich mit dem konvertierten Text, ohne Markdown-Codeblock und ohne erklärenden Vor- oder Nachspann.",
 
   "settings": {
     "title": "VOCIX — Einstellungen",
@@ -113,6 +116,7 @@
       "hotkey_mode_a": "Hotkey Modus Clean",
       "hotkey_mode_b": "Hotkey Modus Business",
       "hotkey_mode_c": "Hotkey Modus Rage",
+      "hotkey_mode_d": "Hotkey Modus LaTeX",
       "model_dir": "Modellverzeichnis",
       "log_file": "Logfile",
       "log_level": "Loglevel",
@@ -138,6 +142,7 @@
       "hotkey_mode_a": "Tastenkombination, die direkt in den Clean-Modus schaltet.",
       "hotkey_mode_b": "Tastenkombination, die direkt in den Business-Modus schaltet (benötigt API-Key).",
       "hotkey_mode_c": "Tastenkombination, die direkt in den Rage-Modus schaltet (benötigt API-Key).",
+      "hotkey_mode_d": "Tastenkombination, die direkt in den LaTeX-Modus schaltet (benötigt API-Key).",
       "model_dir": "Verzeichnis, in dem Whisper-Modelle gecacht werden (~75 MB bis ~3 GB pro Modell).",
       "log_file": "Pfad der Logdatei. Bestehende Datei wird ausgewählt, nicht überschrieben.",
       "log_level": "DEBUG zeigt alles, INFO ist Default, WARNING/ERROR nur Probleme.",
@@ -243,6 +248,7 @@
   "settings.llm.default": "Standard-Provider",
   "settings.llm.business_override": "Business",
   "settings.llm.rage_override": "Rage",
+  "settings.llm.latex_override": "LaTeX",
   "settings.llm.use_default": "Standard verwenden",
   "settings.llm.section.anthropic": "Anthropic (Claude)",
   "settings.llm.section.openai": "OpenAI-kompatibel",

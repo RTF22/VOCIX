@@ -235,6 +235,7 @@ class SettingsDialog:
             ("hotkey_mode_a", "settings.field.hotkey_mode_a", True),
             ("hotkey_mode_b", "settings.field.hotkey_mode_b", True),
             ("hotkey_mode_c", "settings.field.hotkey_mode_c", True),
+            ("hotkey_mode_d", "settings.field.hotkey_mode_d", True),
         ):
             ttk.Label(frame, text=t(label_key)).grid(row=row, column=0, sticky="w", pady=4)
             var = tk.StringVar(value=getattr(self._draft, attr))
@@ -274,7 +275,7 @@ class SettingsDialog:
 
     def _update_mode_combo_values(self) -> None:
         valid = self._any_llm_validated()
-        self._mode_combo["values"] = ("clean", "business", "rage") if valid else ("clean",)
+        self._mode_combo["values"] = ("clean", "business", "rage", "latex") if valid else ("clean",)
         if not valid and self._var_default_mode.get() != "clean":
             self._var_default_mode.set("clean")
             self._draft.default_mode = "clean"
@@ -284,8 +285,8 @@ class SettingsDialog:
         return bool(load_state().get("anthropic_key_validated"))
 
     def _any_llm_validated(self) -> bool:
-        """B/C nur freischalten, wenn der für sie gewählte Provider validiert ist."""
-        for m in ("business", "rage"):
+        """B/C/L nur freischalten, wenn der für sie gewählte Provider validiert ist."""
+        for m in ("business", "rage", "latex"):
             slot = self._draft.llm_mode_slot(m)
             if not self._draft.llm_validated(slot):
                 return False
@@ -293,7 +294,7 @@ class SettingsDialog:
 
     def _refresh_api_gated_widgets(self) -> None:
         valid = self._any_llm_validated()
-        for attr in ("hotkey_mode_b", "hotkey_mode_c"):
+        for attr in ("hotkey_mode_b", "hotkey_mode_c", "hotkey_mode_d"):
             cb, btn = self._hotkey_widgets[attr]
             state = ["!disabled"] if valid else ["disabled"]
             cb.state(state)
@@ -533,6 +534,7 @@ class SettingsDialog:
             self._draft.hotkey_mode_a,
             self._draft.hotkey_mode_b,
             self._draft.hotkey_mode_c,
+            self._draft.hotkey_mode_d,
         ]
         non_empty = [k for k in keys if k]
         if len(set(non_empty)) != len(non_empty):
@@ -608,6 +610,14 @@ class SettingsDialog:
                             values=("__default__", *slot_values))
         cb_r.grid(row=2, column=1, sticky="w")
         cb_r.bind("<<ComboboxSelected>>", lambda _e: self._on_routing_changed())
+
+        # LaTeX override
+        ttk.Label(routing, text=t("settings.llm.latex_override")).grid(row=3, column=0, sticky="w", pady=2)
+        self._var_llm_latex = tk.StringVar(value=(self._draft.llm.get("latex") or "__default__"))
+        cb_l = ttk.Combobox(routing, state="readonly", width=22, textvariable=self._var_llm_latex,
+                            values=("__default__", *slot_values))
+        cb_l.grid(row=3, column=1, sticky="w")
+        cb_l.bind("<<ComboboxSelected>>", lambda _e: self._on_routing_changed())
 
         # ---- Provider-Karten -----------------------------------------
         self._llm_status_vars: dict[str, tk.StringVar] = {}
@@ -707,8 +717,10 @@ class SettingsDialog:
         self._draft.llm["default"] = self._var_llm_default.get()
         b = self._var_llm_business.get()
         r = self._var_llm_rage.get()
+        l = self._var_llm_latex.get()
         self._draft.llm["business"] = None if b == "__default__" else b
         self._draft.llm["rage"] = None if r == "__default__" else r
+        self._draft.llm["latex"] = None if l == "__default__" else l
         self._refresh_api_gated_widgets()
 
     def _on_llm_test(self, slot_id: str) -> None:

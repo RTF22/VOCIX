@@ -27,6 +27,7 @@ from vocix import wakeword
 from vocix.processing.base import TextProcessor
 from vocix.processing.business import BusinessProcessor
 from vocix.processing.clean import CleanProcessor
+from vocix.processing.latex import LatexProcessor
 from vocix.processing.rage import RageProcessor
 from vocix.stt.whisper_stt import WhisperSTT, cuda_available, load_stt
 from vocix.ui import native_dialog
@@ -71,7 +72,7 @@ logger = logging.getLogger(__name__)
 class VocixApp:
     _STATE_PERSISTED_FIELDS = (
         "language", "whisper_model", "whisper_acceleration", "translate_to_english",
-        "default_mode", "hotkey_record", "hotkey_mode_a", "hotkey_mode_b", "hotkey_mode_c",
+        "default_mode", "hotkey_record", "hotkey_mode_a", "hotkey_mode_b", "hotkey_mode_c", "hotkey_mode_d",
         "log_level", "log_file", "whisper_model_dir",
         "overlay_display_seconds",
         "rdp_mode", "clipboard_delay", "paste_delay",
@@ -137,6 +138,7 @@ class VocixApp:
             "clean": CleanProcessor(),
             "business": BusinessProcessor(self._config),
             "rage": RageProcessor(self._config),
+            "latex": LatexProcessor(self._config),
         }
         # Toast-Callback verkabeln: bei Provider-Fallback orange Meldung im Overlay
         def _on_llm_fallback(mode_name: str, reason: str) -> None:
@@ -145,6 +147,7 @@ class VocixApp:
             self._overlay.show_temporary(msg, "error")
         self._processors["business"].set_fallback_callback(_on_llm_fallback)
         self._processors["rage"].set_fallback_callback(_on_llm_fallback)
+        self._processors["latex"].set_fallback_callback(_on_llm_fallback)
 
         # Tray
         self._tray = TrayApp(
@@ -382,12 +385,14 @@ class VocixApp:
         keyboard.add_hotkey(self._config.hotkey_mode_a, lambda: self._set_mode("clean"))
         keyboard.add_hotkey(self._config.hotkey_mode_b, lambda: self._set_mode("business"))
         keyboard.add_hotkey(self._config.hotkey_mode_c, lambda: self._set_mode("rage"))
+        keyboard.add_hotkey(self._config.hotkey_mode_d, lambda: self._set_mode("latex"))
 
-        logger.info("Hotkeys registered: '%s' (PTT), %s/%s/%s (modes)",
+        logger.info("Hotkeys registered: '%s' (PTT), %s/%s/%s/%s (modes)",
                      record_key,
                      self._config.hotkey_mode_a,
                      self._config.hotkey_mode_b,
-                     self._config.hotkey_mode_c)
+                     self._config.hotkey_mode_c,
+                     self._config.hotkey_mode_d)
 
     def _rebind_hotkeys(self) -> None:
         """Hotkeys nach einer Settings-Änderung neu binden.

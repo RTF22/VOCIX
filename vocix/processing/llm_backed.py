@@ -31,14 +31,17 @@ class LLMBackedProcessor(TextProcessor):
         *,
         name: str,
         prompt_key: str,
-        mode: str,  # "business" | "rage"
+        mode: str,  # "business" | "rage" | "latex"
         on_fallback: FallbackCallback | None = None,
+        fallback_processor: TextProcessor | None = None,
     ):
         self._config = config
         self._name = name
         self._prompt_key = prompt_key
         self._mode = mode
-        self._fallback = CleanProcessor()
+        # Default: Clean. LaTeX-Mode setzt PassthroughProcessor, damit Mathe-
+        # Aussprache bei Provider-Fehler nicht zerschnitten wird.
+        self._fallback = fallback_processor if fallback_processor is not None else CleanProcessor()
         self._on_fallback = on_fallback
 
     def set_fallback_callback(self, cb: FallbackCallback | None) -> None:
@@ -57,7 +60,8 @@ class LLMBackedProcessor(TextProcessor):
             provider = build_provider(provider_cfg)
             result = provider.complete(system=t(self._prompt_key), user=text)
         except ProviderError as e:
-            logger.info("%s: provider failed (%s) — falling back to Clean", self._name, e)
+            logger.info("%s: provider failed (%s) — falling back to %s",
+                        self._name, e, self._fallback.name)
             if self._on_fallback is not None:
                 try:
                     self._on_fallback(self._name, str(e))

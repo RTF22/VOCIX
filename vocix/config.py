@@ -119,8 +119,9 @@ class Config:
     hotkey_mode_a: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_A", "ctrl+shift+1"))
     hotkey_mode_b: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_B", "ctrl+shift+2"))
     hotkey_mode_c: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_C", "ctrl+shift+3"))
+    hotkey_mode_d: str = field(default_factory=lambda: os.getenv("VOCIX_HOTKEY_MODE_D", "ctrl+shift+l"))
 
-    # Modus: "clean", "business", "rage"
+    # Modus: "clean", "business", "rage", "latex"
     default_mode: str = "clean"
 
     # Whisper Task: wenn True, übersetzt Whisper das Audio direkt ins Englische
@@ -196,13 +197,13 @@ class Config:
             config.whisper_acceleration = stored_accel
 
         # Hotkeys
-        for key in ("hotkey_record", "hotkey_mode_a", "hotkey_mode_b", "hotkey_mode_c"):
+        for key in ("hotkey_record", "hotkey_mode_a", "hotkey_mode_b", "hotkey_mode_c", "hotkey_mode_d"):
             v = state.get(key)
             if isinstance(v, str) and v.strip():
                 setattr(config, key, v)
 
         # Modus
-        if state.get("default_mode") in ("clean", "business", "rage"):
+        if state.get("default_mode") in ("clean", "business", "rage", "latex"):
             config.default_mode = state["default_mode"]
 
         # Logging / Pfade
@@ -317,8 +318,8 @@ class Config:
         return "anthropic"
 
     def llm_mode_slot(self, mode: str) -> str:
-        """Slot für business/rage. Env > state.json > Default."""
-        if mode not in ("business", "rage"):
+        """Slot für business/rage/latex. Env > state.json > Default."""
+        if mode not in ("business", "rage", "latex"):
             raise ValueError(f"Unknown LLM mode: {mode!r}")
         env = os.getenv(f"VOCIX_LLM_{mode.upper()}")
         if env in self._LLM_SLOTS:
