@@ -44,15 +44,46 @@ class UpdateInfo:
     sha256: str | None = None  # erwarteter SHA256 (lowercase hex), wenn von der API geliefert
 
 
-def _parse_version(tag: str) -> tuple[int, int, int]:
-    """'v0.9.0' oder '0.9.0' -> (0, 9, 0). Raised ValueError bei Fehlern."""
+def _parse_version(tag: str) -> tuple:
+    """SemVer-Parser. Gibt einen vergleichbaren Tupel zurück.
+
+    Beispiele:
+        'v0.9.0'          -> (0, 9, 0, 1)
+        '1.4.0'           -> (1, 4, 0, 1)
+        '1.4.0-beta.3'    -> (1, 4, 0, 0, ((1, 'beta'), (0, 3)))
+        '1.4.0-rc.1'      -> (1, 4, 0, 0, ((1, 'rc'), (0, 1)))
+
+    Stable-Releases (Index 3 = 1) sortieren über Pre-Releases (Index 3 = 0)
+    derselben X.Y.Z-Basis — entspricht SemVer-Precedence (1.4.0-beta.3 < 1.4.0).
+
+    Raised ValueError bei strukturellen Fehlern.
+    """
     s = tag.strip()
     if s.startswith(("v", "V")):
         s = s[1:]
+    # Pre-Release-Suffix (alles nach erstem '-') abtrennen. Build-Metadata ('+...')
+    # ignorieren wir komplett — SemVer-konform irrelevant für Precedence.
+    pre = ""
+    if "+" in s:
+        s = s.split("+", 1)[0]
+    if "-" in s:
+        s, pre = s.split("-", 1)
     parts = s.split(".")
     if len(parts) != 3:
         raise ValueError(f"Unerwartetes Version-Format: {tag!r}")
-    return tuple(int(p) for p in parts)  # type: ignore[return-value]
+    major, minor, patch = (int(p) for p in parts)
+    if not pre:
+        return (major, minor, patch, 1)
+    pre_ids: list[tuple[int, object]] = []
+    for ident in pre.split("."):
+        if not ident:
+            raise ValueError(f"Leerer Pre-Release-Identifier in {tag!r}")
+        # Numerische Identifier sortieren unter alphanumerischen (SemVer §11.4.3).
+        if ident.isdigit():
+            pre_ids.append((0, int(ident)))
+        else:
+            pre_ids.append((1, ident))
+    return (major, minor, patch, 0, tuple(pre_ids))
 
 
 def _fetch_latest_release(current_version: str) -> dict | None:
@@ -110,7 +141,10 @@ def check_latest(
     if latest <= current:
         return None
 
-    normalized = ".".join(str(x) for x in latest)
+    # Anzeigeform: "X.Y.Z" für Stable, "X.Y.Z-pre.id" für Pre-Release.
+    # GitHubs /releases/latest filtert prerelease=true ohnehin raus, aber wir
+    # rekonstruieren aus dem Tag, damit das Format dem Tag entspricht.
+    normalized = tag.lstrip("vV")
     if skip_version and skip_version.lstrip("vV") == normalized:
         logger.info("Update %s skipped by user", normalized)
         return None

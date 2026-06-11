@@ -14,16 +14,16 @@ from vocix import updater
 
 class TestParseVersion:
     def test_with_v_prefix(self):
-        assert updater._parse_version("v0.9.0") == (0, 9, 0)
+        assert updater._parse_version("v0.9.0") == (0, 9, 0, 1)
 
     def test_without_prefix(self):
-        assert updater._parse_version("0.9.0") == (0, 9, 0)
+        assert updater._parse_version("0.9.0") == (0, 9, 0, 1)
 
     def test_uppercase_v(self):
-        assert updater._parse_version("V1.2.3") == (1, 2, 3)
+        assert updater._parse_version("V1.2.3") == (1, 2, 3, 1)
 
     def test_double_digit(self):
-        assert updater._parse_version("v10.20.30") == (10, 20, 30)
+        assert updater._parse_version("v10.20.30") == (10, 20, 30, 1)
 
     def test_invalid_parts(self):
         with pytest.raises(ValueError):
@@ -32,6 +32,27 @@ class TestParseVersion:
     def test_non_numeric(self):
         with pytest.raises(ValueError):
             updater._parse_version("va.b.c")
+
+    def test_prerelease_parsed(self):
+        v = updater._parse_version("1.4.0-beta.3")
+        assert v == (1, 4, 0, 0, ((1, "beta"), (0, 3)))
+
+    def test_prerelease_below_stable(self):
+        """SemVer §11.3: 1.4.0-beta.3 < 1.4.0."""
+        assert updater._parse_version("1.4.0-beta.3") < updater._parse_version("1.4.0")
+
+    def test_prerelease_ordering(self):
+        """SemVer §11.4: alpha < beta < rc; höhere Nummer > niedrigere."""
+        assert updater._parse_version("1.0.0-alpha") < updater._parse_version("1.0.0-beta")
+        assert updater._parse_version("1.0.0-beta.1") < updater._parse_version("1.0.0-beta.2")
+        assert updater._parse_version("1.0.0-beta") < updater._parse_version("1.0.0-rc")
+
+    def test_build_metadata_ignored(self):
+        assert updater._parse_version("1.4.0+build.42") == (1, 4, 0, 1)
+
+    def test_empty_prerelease_identifier(self):
+        with pytest.raises(ValueError):
+            updater._parse_version("1.0.0-beta.")
 
 
 def _make_response(payload: dict):
@@ -134,6 +155,23 @@ class TestCheckLatest:
         assert info.asset_url == "https://example/zip"
         assert info.asset_name == "VOCIX-v0.9.0-win-x64.zip"
         assert info.sha256 == "a" * 64
+
+    def test_beta_detects_stable_release(self):
+        """Regression: 1.4.0-beta.3 muss v1.4.0 als Update sehen.
+
+        Vorher schlug _parse_version('1.4.0-beta.3') mit ValueError fehl, der
+        Update-Check schluckte den Fehler stillschweigend und meldete „aktuell".
+        """
+        payload = {"tag_name": "v1.4.0", "html_url": "x", "body": ""}
+        with patch("vocix.updater.request.urlopen", return_value=_make_response(payload)):
+            info = updater.check_latest("1.4.0-beta.3", skip_version=None)
+        assert info is not None
+        assert info.version == "1.4.0"
+
+    def test_stable_does_not_offer_older_prerelease(self):
+        payload = {"tag_name": "v1.4.0-beta.3", "html_url": "x", "body": ""}
+        with patch("vocix.updater.request.urlopen", return_value=_make_response(payload)):
+            assert updater.check_latest("1.4.0", skip_version=None) is None
 
     def test_no_matching_asset_keeps_url_empty(self):
         payload = {
