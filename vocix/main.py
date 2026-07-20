@@ -8,6 +8,7 @@ import gc
 import logging
 import logging.handlers
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -246,7 +247,12 @@ class VocixApp:
                     return
                 old_stt = self._stt
                 self._stt = new_stt
-                self._config = new_config
+                # Gemeinsame Config-Instanz in-place aktualisieren (nicht die
+                # Referenz ersetzen) — sonst sähen Recorder/Overlay/Prozessoren
+                # den neuen Stand nicht mehr. Die neue STT liest translate/
+                # language dann live von derselben Instanz.
+                self._config.update_from(new_config)
+                new_stt._config = self._config
                 # CUDA-VRAM des alten Modells deterministisch freigeben — sonst
                 # bleibt es belegt, bis der Pipeline-Thread seine Referenz fallen
                 # lässt (auf 4 GB-Karten OOM-Risiko bei large→tiny-Wechsel).
@@ -404,11 +410,25 @@ class VocixApp:
         keyboard.unhook_all()
         self._register_hotkeys()
 
-    def apply_settings(self, new_config) -> None:
+    # Felder, die nur beim Programmstart konsumiert werden (Log-Handler werden
+    # einmalig angehängt) — Änderungen daran greifen erst nach einem Neustart.
+    _RESTART_REQUIRED_FIELDS = ("log_level", "log_file")
+    _HOTKEY_FIELDS = ("hotkey_record", "hotkey_mode_a", "hotkey_mode_b",
+                      "hotkey_mode_c", "hotkey_mode_d")
+    _INJECTOR_FIELDS = ("clipboard_delay", "paste_delay", "rdp_mode")
+
+    def apply_settings(self, new_config) -> bool:
         """Übernimmt einen neuen Config-Stand: persistieren, dann selektiv
-        Whisper neu laden, Hotkeys neu binden, Sprache umschalten, Tray
-        refreshen — abhängig vom Diff zur alten Config."""
-        old = self._config
+        Whisper neu laden, Hotkeys neu binden, Sprache umschalten, Injector
+        neu bauen, Tray refreshen — abhängig vom Diff zur alten Config.
+
+        Aktualisiert die *gemeinsame* Config-Instanz in-place (`update_from`),
+        damit alle Komponenten, die eine Referenz halten, den neuen Stand live
+        sehen. Gibt True zurück, wenn ein Feld geändert wurde, das erst nach
+        einem Neustart wirksam wird (Log-Level/Log-Datei)."""
+        # Snapshot VOR der In-place-Mutation — sonst zeigt `old` bereits die
+        # neuen Werte, weil es dieselbe Instanz wäre.
+        old = replace(self._config)
 
         with update_state() as s:
             for field_name in self._STATE_PERSISTED_FIELDS:
@@ -428,7 +448,8 @@ class VocixApp:
                 s["anthropic_model"] = new_config.anthropic_model
                 s["anthropic_timeout"] = new_config.anthropic_timeout
 
-        self._config = new_config
+        # Gemeinsame Instanz in-place aktualisieren (statt Referenz ersetzen).
+        self._config.update_from(new_config)
 
         if old.language != new_config.language:
             i18n.set_language(new_config.language)
@@ -438,20 +459,56 @@ class VocixApp:
             or old.whisper_model_dir != new_config.whisper_model_dir):
             self._reload_stt()
 
-        any_diff = any(
-            getattr(old, f) != getattr(new_config, f)
-            for f in self._STATE_PERSISTED_FIELDS
-        )
-        if any_diff:
+        if any(getattr(old, f) != getattr(new_config, f) for f in self._HOTKEY_FIELDS):
             self._rebind_hotkeys()
+
+        # Injector cached clipboard_delay/paste_delay/rdp_mode im Konstruktor —
+        # bei Änderung neu erzeugen, damit die neuen Werte greifen.
+        if (getattr(self, "_injector", None) is not None
+                and any(getattr(old, f) != getattr(new_config, f) for f in self._INJECTOR_FIELDS)):
+            self._injector = TextInjector(self._config)
 
         if self._tray is not None:
             self._tray.refresh()
 
+        changed = any(
+            getattr(old, f) != getattr(new_config, f)
+            for f in self._STATE_PERSISTED_FIELDS
+        ) or old.llm != new_config.llm
+        if changed and self._overlay is not None:
+            self._overlay.show_temporary(t("settings.notice.saved"), "done")
+
+        return any(
+            getattr(old, f) != getattr(new_config, f)
+            for f in self._RESTART_REQUIRED_FIELDS
+        )
+
+    def restart(self) -> None:
+        """Startet VOCIX neu, um Einstellungen wirksam zu machen, die nur beim
+        Start konsumiert werden. Die Settings sind zu diesem Zeitpunkt bereits
+        in state.json persistiert. Spawnt einen neuen Prozess, fährt den
+        aktuellen sauber herunter und erzwingt nach kurzer Frist os._exit —
+        analog zum Update-Helper (non-daemon Threads würden sonst hängen)."""
+        logger.info("Restarting VOCIX to apply restart-only settings")
+        try:
+            if getattr(sys, "frozen", False):
+                args = [sys.executable]
+            else:
+                args = [sys.executable, "-m", "vocix.main"]
+            flags = 0x08000000 if os.name == "nt" else 0  # CREATE_NO_WINDOW
+            subprocess.Popen(args, creationflags=flags, close_fds=True)
+        except Exception as e:
+            logger.error("Restart spawn failed: %s", e, exc_info=True)
+            if self._overlay is not None:
+                self._overlay.show_temporary(t("overlay.error"), "error")
+            return
+        self._quit()
+        threading.Timer(2.0, lambda: os._exit(0)).start()
+
     def open_settings(self) -> None:
         """Tray-Callback: Settings-Dialog im Overlay-Tk-Thread öffnen."""
         if self._overlay is not None:
-            self._overlay.show_settings(self._config, self.apply_settings)
+            self._overlay.show_settings(self._config, self.apply_settings, self.restart)
 
     def _quit(self) -> None:
         logger.info("VOCIX shutting down...")

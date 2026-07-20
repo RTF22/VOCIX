@@ -100,7 +100,7 @@
     "title": "VOCIX — Einstellungen",
     "tab": { "basics": "Basics", "advanced": "Erweitert", "expert": "Expert" },
     "button": {
-      "ok": "OK", "cancel": "Abbrechen", "apply": "Übernehmen",
+      "ok": "OK", "cancel": "Abbrechen", "apply": "Übernehmen", "save": "Speichern",
       "test": "Test", "browse": "Durchsuchen…", "other_key": "Andere Taste…",
       "reset": "Auf Werkseinstellungen zurücksetzen",
       "open_config_dir": "Konfigurationsverzeichnis öffnen"
@@ -209,7 +209,11 @@
     },
     "confirm": {
       "factory_reset": "Wirklich alle Einstellungen auf Werkszustand zurücksetzen?",
-      "factory_reset_done": "Werkseinstellungen wiederhergestellt — bitte Dialog neu öffnen."
+      "factory_reset_done": "Werkseinstellungen wiederhergestellt — bitte Dialog neu öffnen.",
+      "restart_needed": {
+        "title": "Neustart erforderlich",
+        "body": "Die geänderten Log-Einstellungen werden erst nach einem Neustart von VOCIX wirksam. Jetzt neu starten?"
+      }
     },
     "section": {
       "anthropic": "Anthropic"
@@ -219,7 +223,8 @@
       "all_files": "Alle Dateien"
     },
     "notice": {
-      "language_changed": "Sprache geändert — Dialog bitte schließen und neu öffnen, um die neuen Texte zu sehen."
+      "language_changed": "Sprache geändert — Dialog bitte schließen und neu öffnen, um die neuen Texte zu sehen.",
+      "saved": "Einstellungen gespeichert"
     },
     "lang": { "de": "Deutsch", "en": "Englisch", "other": "Andere…" },
     "output": { "input_lang": "Wie Eingabesprache", "english": "Englisch" },

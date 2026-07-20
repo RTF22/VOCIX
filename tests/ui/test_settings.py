@@ -38,10 +38,11 @@ def test_dialog_cancel_calls_no_apply(root, base_config):
     assert called["n"] == 0
 
 
-def test_dialog_apply_calls_callback_with_config_copy(root, base_config):
+def test_dialog_save_calls_callback_with_config_copy(root, base_config):
     received = []
-    dlg = SettingsDialog(root, config=base_config, on_apply=lambda c: received.append(c))
-    dlg._on_apply()
+    dlg = SettingsDialog(root, config=base_config,
+                         on_apply=lambda c: received.append(c) or None)
+    dlg._on_save()
     assert len(received) == 1
     assert received[0] is not base_config
     assert received[0].language == "de"
@@ -100,7 +101,9 @@ def test_api_key_masked_display_for_saved_key(root):
     dlg.destroy()
 
 
-def test_llm_anthropic_test_marks_validated(root, tmp_path, monkeypatch):
+def test_llm_anthropic_test_marks_validated_in_draft_not_state(root, tmp_path, monkeypatch):
+    """Provider-Test schreibt das Ergebnis in den Draft, NICHT sofort nach
+    state.json — erst Speichern persistiert (überlebt Abbrechen)."""
     state_file = tmp_path / "state.json"
     state_file.write_text("{}")
     monkeypatch.setattr("vocix.config.STATE_FILE", state_file)
@@ -111,8 +114,12 @@ def test_llm_anthropic_test_marks_validated(root, tmp_path, monkeypatch):
                         lambda key, model, timeout: (True, ""))
     dlg._on_llm_test("anthropic")
     import json
-    state = json.loads(state_file.read_text())
-    assert state["llm"]["providers"]["anthropic"]["validated"] is True
+    # state.json bleibt unangetastet
+    assert json.loads(state_file.read_text()) == {}
+    # Ergebnis + getestete Feldwerte stehen im Draft
+    anth = dlg._draft.llm["providers"]["anthropic"]
+    assert anth["validated"] is True
+    assert anth["api_key"] == "sk-ant-test-XYZ"
     dlg.destroy()
 
 
@@ -129,23 +136,36 @@ def test_expert_factory_reset_clears_state(root, tmp_path, monkeypatch):
     assert json.loads(state_file.read_text()) == {}
 
 
-def test_duplicate_hotkey_blocks_apply(root):
+def test_duplicate_hotkey_blocks_save(root):
     received = []
     cfg = Config(language="de")
     dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: received.append(c))
-    dlg._draft.hotkey_record = "f9"
-    dlg._draft.hotkey_mode_a = "f9"
-    dlg._on_apply()
+    dlg._hotkey_vars["hotkey_record"].set("f9")
+    dlg._hotkey_vars["hotkey_mode_a"].set("f9")
+    dlg._on_save()
     assert received == []
     assert dlg._error_var.get() != ""
     dlg.destroy()
 
 
-def test_ptt_combo_blocks_apply(root):
+def test_ptt_combo_blocks_save(root):
     received = []
     cfg = Config(language="de")
     dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: received.append(c))
-    dlg._draft.hotkey_record = "ctrl+f9"
-    dlg._on_apply()
+    dlg._hotkey_vars["hotkey_record"].set("ctrl+f9")
+    dlg._on_save()
     assert received == []
+    dlg.destroy()
+
+
+def test_save_commits_typed_spinbox_value_to_draft(root):
+    """Getippter Spinbox-Wert (ohne Pfeil-Klick) landet beim Speichern im
+    Draft — schließt die Lücke der command-only-Bindung."""
+    received = []
+    cfg = Config(language="de", overlay_display_seconds=1.5)
+    dlg = SettingsDialog(root, config=cfg, on_apply=lambda c: received.append(c))
+    dlg._var_overlay.set(4.0)  # nur die Variable, kein command-Event
+    dlg._on_save()
+    assert len(received) == 1
+    assert received[0].overlay_display_seconds == pytest.approx(4.0)
     dlg.destroy()

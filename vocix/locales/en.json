@@ -100,7 +100,7 @@
     "title": "VOCIX — Settings",
     "tab": { "basics": "Basics", "advanced": "Advanced", "expert": "Expert" },
     "button": {
-      "ok": "OK", "cancel": "Cancel", "apply": "Apply",
+      "ok": "OK", "cancel": "Cancel", "apply": "Apply", "save": "Save",
       "test": "Test", "browse": "Browse…", "other_key": "Other key…",
       "reset": "Reset to factory defaults",
       "open_config_dir": "Open config directory"
@@ -209,7 +209,11 @@
     },
     "confirm": {
       "factory_reset": "Really reset all settings to factory defaults?",
-      "factory_reset_done": "Factory defaults restored — please reopen the dialog."
+      "factory_reset_done": "Factory defaults restored — please reopen the dialog.",
+      "restart_needed": {
+        "title": "Restart required",
+        "body": "The changed logging settings only take effect after VOCIX restarts. Restart now?"
+      }
     },
     "section": {
       "anthropic": "Anthropic"
@@ -219,7 +223,8 @@
       "all_files": "All files"
     },
     "notice": {
-      "language_changed": "Language changed — please close and reopen the dialog to see the new text."
+      "language_changed": "Language changed — please close and reopen the dialog to see the new text.",
+      "saved": "Settings saved"
     },
     "lang": { "de": "German", "en": "English", "other": "Other…" },
     "output": { "input_lang": "Same as input", "english": "English" },

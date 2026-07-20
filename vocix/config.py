@@ -4,7 +4,7 @@ import os
 import sys
 import threading
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields as dataclass_fields
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -169,6 +169,21 @@ class Config:
                 f"'scroll lock', 'f7'). Siehe .docs/DECISIONS.md ADR 004. "
                 f"Default ist 'pause'."
             )
+
+    def update_from(self, other: "Config") -> None:
+        """Übernimmt alle Felder von `other` in-place in diese Instanz.
+
+        Kritisch für Live-Settings: `_recorder`, `_injector`, `_overlay`, die
+        Prozessoren und `_stt` halten je eine Referenz auf *diese* Config-
+        Instanz aus dem Konstruktor. Würde `apply_settings` die Referenz
+        ersetzen (`self._config = new`), sähen sie den neuen Stand nie. Durch
+        In-place-Mutation der gemeinsamen Instanz greifen Änderungen an allen
+        per-Call gelesenen Feldern sofort. `__post_init__` läuft erneut, damit
+        z.B. RDP-Delays konsistent bleiben.
+        """
+        for fld in dataclass_fields(self):
+            setattr(self, fld.name, getattr(other, fld.name))
+        self.__post_init__()
 
     @classmethod
     def load(cls, env_file: Path | str | None = None) -> "Config":

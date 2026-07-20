@@ -65,11 +65,13 @@ class SettingsDialog:
         parent: tk.Misc,
         *,
         config: Config,
-        on_apply: Callable[[Config], None],
+        on_apply: Callable[[Config], bool | None],
+        on_restart: Callable[[], None] | None = None,
     ):
         self._original = config
         self._draft = replace(config)
         self._on_apply_cb = on_apply
+        self._on_restart_cb = on_restart
 
         self._win = tk.Toplevel(parent)
         self._win.title(t("settings.title"))
@@ -107,13 +109,15 @@ class SettingsDialog:
             anchor="w", padx=12
         )
 
+        # Nur zwei Buttons: Speichern übernimmt+persistiert alle Änderungen,
+        # Abbrechen verwirft den kompletten Draft (inkl. nicht gespeicherter
+        # Provider-Test-Ergebnisse). Es gibt bewusst kein „Übernehmen" mehr —
+        # nichts wird wirksam, bevor Speichern gedrückt wurde.
         btn_bar = ttk.Frame(self._win)
         btn_bar.pack(fill="x", padx=10, pady=10)
-        self._ok_btn = ttk.Button(btn_bar, text=t("settings.button.ok"), command=self._on_ok)
-        self._ok_btn.pack(side="right", padx=4)
+        self._save_btn = ttk.Button(btn_bar, text=t("settings.button.save"), command=self._on_save)
+        self._save_btn.pack(side="right", padx=4)
         ttk.Button(btn_bar, text=t("settings.button.cancel"), command=self._on_cancel).pack(side="right", padx=4)
-        self._apply_btn = ttk.Button(btn_bar, text=t("settings.button.apply"), command=self._on_apply)
-        self._apply_btn.pack(side="right", padx=4)
 
         # Sichtbarkeit + Fokus erzwingen (Parent kann ein versteckter
         # overrideredirect-Root sein); grab_set() erst NACH dem Mappen,
@@ -542,17 +546,69 @@ class SettingsDialog:
             return False
         return True
 
-    def _on_apply(self) -> None:
-        if not self._validate():
-            return
-        self._persist_llm_draft()
-        self._on_apply_cb(replace(self._draft))
+    def _commit_vars_to_draft(self) -> None:
+        """Übernimmt ALLE UI-Variablen in den Draft — unabhängig davon, ob das
+        jeweilige Widget-Event gefeuert hat. Schließt die Lücke, dass z.B. in
+        Spinboxen *getippte* (statt per Pfeil gesetzte) Werte sonst nie in den
+        Draft gelangen. Numerische Felder werden defensiv konvertiert; ein
+        ungültiger Wert lässt den bisherigen Draft-Wert unangetastet."""
+        d = self._draft
 
-    def _on_ok(self) -> None:
+        # Eingabesprache: „Andere…"-Combo hat Vorrang, sonst DE/EN-Radio
+        other = self._other_lang_combo.get().strip()
+        il = self._var_input_lang.get()
+        if il in ("de", "en"):
+            d.language = il
+        elif other:
+            d.language = other
+
+        d.translate_to_english = (self._var_output_lang.get() == "english")
+        d.whisper_model = self._var_whisper_model.get()
+        d.whisper_acceleration = self._var_acceleration.get()
+        d.default_mode = self._var_default_mode.get()
+
+        for attr, var in self._hotkey_vars.items():
+            setattr(d, attr, var.get().strip())
+
+        d.whisper_model_dir = self._var_model_dir.get()
+        d.log_file = self._var_log_file.get()
+        d.log_level = self._var_log_level.get()
+        d.rdp_mode = bool(self._var_rdp.get())
+        wl = self._var_whisper_lang.get()
+        d.whisper_language_override = "" if wl == "auto" else wl
+
+        for var, attr, cast in (
+            (self._var_overlay, "overlay_display_seconds", float),
+            (self._var_clipboard, "clipboard_delay", float),
+            (self._var_paste, "paste_delay", float),
+            (self._var_silence, "silence_threshold", float),
+            (self._var_min_dur, "min_duration", float),
+            (self._var_sample_rate, "sample_rate", int),
+        ):
+            try:
+                setattr(d, attr, cast(var.get()))
+            except (tk.TclError, ValueError):
+                pass  # ungültige Eingabe → bisherigen Draft-Wert behalten
+
+    def _on_save(self) -> None:
+        """Speichern: validieren, Draft persistieren/anwenden, ggf. Neustart
+        anbieten, dann Dialog schließen. Erst hier wird irgendetwas wirksam."""
+        self._commit_vars_to_draft()
         if not self._validate():
             return
         self._persist_llm_draft()
-        self._on_apply_cb(replace(self._draft))
+        restart_needed = bool(self._on_apply_cb(replace(self._draft)))
+        if restart_needed and self._on_restart_cb is not None:
+            from tkinter import messagebox
+            do_restart = messagebox.askyesno(
+                t("settings.confirm.restart_needed.title"),
+                t("settings.confirm.restart_needed.body"),
+                parent=self._win,
+            )
+            self.destroy()
+            if do_restart:
+                self._on_restart_cb()
+            return
         self.destroy()
 
     def _on_cancel(self) -> None:
@@ -724,7 +780,6 @@ class SettingsDialog:
         self._refresh_api_gated_widgets()
 
     def _on_llm_test(self, slot_id: str) -> None:
-        from vocix.config import update_state
         status_var = self._llm_status_vars[slot_id]
         status_var.set(t("provider.test.in_progress"))
         self._win.update_idletasks()
@@ -751,9 +806,27 @@ class SettingsDialog:
         else:
             ok, err = False, f"unknown slot {slot_id}"
 
-        with update_state() as s:
-            s.setdefault("llm", {}).setdefault("providers", {}).setdefault(slot_id, {})
-            s["llm"]["providers"][slot_id]["validated"] = ok
+        # Ergebnis nur in den Draft schreiben — NICHT nach state.json. Erst
+        # „Speichern" persistiert (via _persist_llm_draft → apply_settings).
+        # So überlebt ein Testergebnis kein „Abbrechen". Die getesteten
+        # Feldwerte wandern mit in den Draft, damit das API-Gating
+        # (_any_llm_validated) sofort korrekt greift.
+        providers = self._draft.llm.setdefault("providers", {})
+        slot = providers.setdefault(slot_id, {})
+        if slot_id == "anthropic":
+            slot["api_key"] = self._var_llm_anth_key.get().strip()
+            slot["model"] = self._var_llm_anth_model.get().strip()
+            slot["timeout"] = float(self._var_llm_anth_timeout.get())
+        elif slot_id == "openai":
+            slot["api_key"] = self._var_llm_oai_key.get().strip()
+            slot["base_url"] = self._var_llm_oai_url.get().strip()
+            slot["model"] = self._var_llm_oai_model.get().strip()
+            slot["timeout"] = float(self._var_llm_oai_timeout.get())
+        elif slot_id == "ollama":
+            slot["base_url"] = self._var_llm_oll_url.get().strip()
+            slot["model"] = self._var_llm_oll_model.get().strip()
+            slot["timeout"] = float(self._var_llm_oll_timeout.get())
+        slot["validated"] = ok
 
         if ok:
             status_var.set(t("provider.test.success"))
@@ -801,8 +874,7 @@ class SettingsDialog:
         def _apply():
             try:
                 self._error_var.set(t("settings.notice.language_changed"))
-                self._apply_btn.state(["disabled"])
-                self._ok_btn.state(["disabled"])
+                self._save_btn.state(["disabled"])
             except tk.TclError:
                 pass
 

@@ -311,7 +311,7 @@ class StatusOverlay:
 
         self._schedule(_open)
 
-    def show_settings(self, config, on_apply) -> None:
+    def show_settings(self, config, on_apply, on_restart=None) -> None:
         """Settings-Dialog im Overlay-Tk-Thread öffnen.
 
         Singleton-Verhalten analog show_about: ein bereits offenes Fenster
@@ -332,7 +332,7 @@ class StatusOverlay:
                 return
             from vocix.ui.settings import SettingsDialog
             self._settings_dialog = SettingsDialog(
-                self._root, config=config, on_apply=on_apply
+                self._root, config=config, on_apply=on_apply, on_restart=on_restart
             )
 
         self._schedule(_open)

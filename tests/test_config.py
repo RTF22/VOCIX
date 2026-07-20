@@ -20,6 +20,40 @@ def test_translate_default_is_false():
     assert cfg.translate_to_english is False
 
 
+def test_update_from_copies_all_fields_in_place():
+    target = config_module.Config(language="de", whisper_model="small")
+    source = config_module.Config(
+        language="en",
+        whisper_model="medium",
+        hotkey_record="f9",
+        clipboard_delay=0.5,
+        log_level="DEBUG",
+    )
+    source.llm = {"default": "openai", "providers": {"openai": {"validated": True}}}
+
+    before_id = id(target)
+    target.update_from(source)
+
+    assert id(target) == before_id  # gleiche Instanz — Referenzen bleiben gültig
+    assert target.language == "en"
+    assert target.whisper_model == "medium"
+    assert target.hotkey_record == "f9"
+    assert target.clipboard_delay == pytest.approx(0.5)
+    assert target.log_level == "DEBUG"
+    assert target.llm == {"default": "openai", "providers": {"openai": {"validated": True}}}
+
+
+def test_update_from_reapplies_post_init_rdp_delays():
+    target = config_module.Config(rdp_mode=False, clipboard_delay=0.05)
+    source = config_module.Config(rdp_mode=True, clipboard_delay=0.05)
+
+    target.update_from(source)
+
+    # __post_init__ erhöht die Delays im RDP-Modus automatisch
+    assert target.clipboard_delay >= 0.15
+    assert target.paste_delay >= 0.3
+
+
 def test_save_and_load_translate_flag(isolated_state):
     config_module.save_state({"translate_to_english": True})
 
