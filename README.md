@@ -23,7 +23,7 @@ Local voice dictation app for Windows 11 with a global hotkey. Capture speech, t
   - **B — Business:** Rewrites speech into professional business language (LLM-powered)
   - **C — Rage:** De-escalates aggressive language into polite phrasing (LLM-powered)
 - **Multi-provider LLM for modes B and C** — pick your backend in the settings dialog: Anthropic Claude, any OpenAI-compatible API (OpenAI, Groq, OpenRouter, LM Studio, llama.cpp-server, vLLM via `base_url`) or local Ollama models. Per-mode override (e.g. Business on cloud Claude, Rage on local Llama). Provider failures fall back to Clean mode and surface an orange toast — no more silent degradation.
-- **Settings dialog** in the tray menu — four tabs (Basics / Advanced / Expert / AI Provider) with Test buttons, hotkey capture and per-mode validation
+- **Settings dialog** in the tray menu — four tabs (Basics / Advanced / Expert / AI Provider) with Test buttons, hotkey capture and per-mode validation. Changes follow a strict draft model: nothing takes effect until you press **Save**, **Cancel** discards everything. Almost every setting applies live; only log level / log file require a restart (you're prompted, and VOCIX restarts itself on confirmation)
 - **System tray** with a colour-coded microphone icon and mode switching
 - **Status overlay** with a live VU meter while recording — instant visual feedback that the mic is picking up signal
 - **History of the last 20 dictations** in the tray — click an entry to re-insert it (saves your text when the target window has changed)
@@ -107,7 +107,7 @@ The result lives in `dist\VOCIX\` — the whole folder is portable.
 
 ## Configuration
 
-The recommended way to configure VOCIX is the **Settings dialog** (tray icon → Settings). The `AI Provider` tab carries three slots — Anthropic, OpenAI-compatible and Ollama — each with its own Test button. Pick a default and optionally override per mode (Business / Rage).
+The recommended way to configure VOCIX is the **Settings dialog** (tray icon → Settings). The `AI Provider` tab carries three slots — Anthropic, OpenAI-compatible and Ollama — each with its own Test button. Pick a default and optionally override per mode (Business / Rage). Nothing is written until you press **Save** — **Cancel** discards every change, including provider Test results.
 
 For headless setups everything is also available via `.env`:
 

@@ -23,7 +23,7 @@ Lokale Sprachdiktion-App für Windows 11 mit globalem Hotkey. Sprache aufnehmen,
   - **B — Business:** Wandelt Sprache in professionelle Geschäftssprache um (LLM-gestützt)
   - **C — Rage:** Deeskaliert aggressive Sprache in höfliche Formulierungen (LLM-gestützt)
 - **Multi-Provider-LLM für Modi B und C** — Backend frei wählbar im Einstellungsdialog: Anthropic Claude, jede OpenAI-kompatible API (OpenAI, Groq, OpenRouter, LM Studio, llama.cpp-Server, vLLM via `base_url`) oder lokale Ollama-Modelle. Per-Mode-Override (z. B. Business über Cloud-Claude, Rage über lokales Llama). Provider-Fehler fallen auf Clean-Modus zurück und zeigen einen orangenen Toast — kein stiller Fallback mehr.
-- **Einstellungsdialog** im Tray-Menü — vier Tabs (Basics / Erweitert / Expert / KI-Provider) mit Test-Buttons, Hotkey-Capture und Validierung pro Modus
+- **Einstellungsdialog** im Tray-Menü — vier Tabs (Basics / Erweitert / Expert / KI-Provider) mit Test-Buttons, Hotkey-Capture und Validierung pro Modus. Änderungen folgen einem strikten Entwurfsmodell: nichts wird wirksam, bevor du **Speichern** drückst, **Abbrechen** verwirft alles. Fast jede Einstellung greift sofort; nur Log-Level / Log-Datei erfordern einen Neustart (es wird nachgefragt, und VOCIX startet sich bei Bestätigung selbst neu)
 - **System Tray** mit farbcodiertem Mikrofon-Icon und Moduswechsel
 - **Status-Overlay** mit Live-VU-Meter während der Aufnahme — sofortiges visuelles Feedback, dass das Mikrofon Pegel sieht
 - **Verlauf der letzten 20 Diktate** im Tray — Klick auf einen Eintrag fügt ihn erneut ein (rettet Text, wenn das Zielfenster gewechselt wurde)
@@ -106,7 +106,7 @@ Ergebnis liegt in `dist\VOCIX\` — der gesamte Ordner ist portabel.
 
 ## Konfiguration
 
-Empfohlener Weg: **Einstellungsdialog** (Tray-Icon → Einstellungen…). Der Tab `KI-Provider` hat drei Slots — Anthropic, OpenAI-kompatibel und Ollama — jeweils mit eigenem Test-Button. Default wählen und optional pro Modus (Business / Rage) überschreiben.
+Empfohlener Weg: **Einstellungsdialog** (Tray-Icon → Einstellungen…). Der Tab `KI-Provider` hat drei Slots — Anthropic, OpenAI-kompatibel und Ollama — jeweils mit eigenem Test-Button. Default wählen und optional pro Modus (Business / Rage) überschreiben. Nichts wird geschrieben, bevor du **Speichern** drückst — **Abbrechen** verwirft jede Änderung, auch Provider-Test-Ergebnisse.
 
 Für Headless-Setups stehen alle Werte zusätzlich in der `.env` zur Verfügung:
 
