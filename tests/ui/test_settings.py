@@ -169,3 +169,33 @@ def test_save_commits_typed_spinbox_value_to_draft(root):
     assert len(received) == 1
     assert received[0].overlay_display_seconds == pytest.approx(4.0)
     dlg.destroy()
+
+
+def test_buttons_stay_visible_when_window_is_small(root, base_config):
+    """Regression: Buttonleiste wurde vom Notebook aus dem sichtbaren Bereich
+    gedrängt, wenn der Inhalt höher war als das Fenster."""
+    dlg = SettingsDialog(root, config=base_config, on_apply=lambda c: None)
+    win = dlg._win
+    win.geometry("700x400")
+    win.update_idletasks()
+    btn_bar = dlg._save_btn.master
+    assert btn_bar.winfo_y() + btn_bar.winfo_height() <= win.winfo_height()
+    dlg.destroy()
+
+
+def test_scrollbar_appears_only_when_content_does_not_fit(root, base_config):
+    """Scrollbar bleibt bei ausreichender Höhe unsichtbar und erscheint erst,
+    wenn der Tab-Inhalt nicht mehr passt."""
+    dlg = SettingsDialog(root, config=base_config, on_apply=lambda c: None)
+    win = dlg._win
+    llm = dlg._tab_llm
+    dlg.notebook.select(1)
+    win.update_idletasks()
+    win.update()
+    assert llm._bar_visible is False
+
+    win.geometry("700x400")
+    win.update_idletasks()
+    win.update()
+    assert llm._bar_visible is True
+    dlg.destroy()

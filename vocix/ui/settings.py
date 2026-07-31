@@ -16,6 +16,7 @@ from typing import Callable
 from vocix.config import Config
 from vocix import i18n
 from vocix.i18n import t
+from vocix.ui.scroll_frame import ScrollableFrame
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,6 @@ class SettingsDialog:
 
         self._win = tk.Toplevel(parent)
         self._win.title(t("settings.title"))
-        self._win.geometry("640x540")
         # transient() nur, wenn der Parent ein sichtbares Toplevel ist —
         # sonst (Overlay-Root mit overrideredirect+withdraw) bleibt das
         # Toplevel ungemappt/unsichtbar.
@@ -88,36 +88,64 @@ class SettingsDialog:
         self._win.protocol("WM_DELETE_WINDOW", self._on_cancel)
 
         self.notebook = ttk.Notebook(self._win)
-        self.notebook.pack(fill="both", expand=True, padx=10, pady=(10, 0))
 
-        self._tab_basics = ttk.Frame(self.notebook, padding=12)
-        self._tab_llm = ttk.Frame(self.notebook, padding=12)
-        self._tab_advanced = ttk.Frame(self.notebook, padding=12)
-        self._tab_expert = ttk.Frame(self.notebook, padding=12)
+        # Jede Seite ist ein ScrollableFrame: passt der Inhalt (grosser
+        # Bildschirm), sieht man keine Scrollbar; muss das Fenster kleiner
+        # ausfallen, bleibt alles per Scrollen erreichbar. Die Build-Methoden
+        # fuellen jeweils `.inner`.
+        self._tab_basics = ScrollableFrame(self.notebook, padding=12)
+        self._tab_llm = ScrollableFrame(self.notebook, padding=12)
+        self._tab_advanced = ScrollableFrame(self.notebook, padding=12)
+        self._tab_expert = ScrollableFrame(self.notebook, padding=12)
         self.notebook.add(self._tab_basics, text=t("settings.tab.basics"))
         self.notebook.add(self._tab_llm, text=t("settings.tab.llm"))
         self.notebook.add(self._tab_advanced, text=t("settings.tab.advanced"))
         self.notebook.add(self._tab_expert, text=t("settings.tab.expert"))
 
-        self._build_basics(self._tab_basics)
-        self._build_llm(self._tab_llm)
-        self._build_advanced(self._tab_advanced)
-        self._build_expert(self._tab_expert)
+        self._build_basics(self._tab_basics.inner)
+        self._build_llm(self._tab_llm.inner)
+        self._build_advanced(self._tab_advanced.inner)
+        self._build_expert(self._tab_expert.inner)
 
-        self._error_var = tk.StringVar()
-        ttk.Label(self._win, textvariable=self._error_var, foreground="#c0392b").pack(
-            anchor="w", padx=12
-        )
-
+        # Pack-Reihenfolge ist hier entscheidend: Buttonleiste und Fehlerzeile
+        # werden VOR dem Notebook (und mit side="bottom") gepackt. pack() bedient
+        # früher gepackte Slaves zuerst — läge das Notebook vorn, würde es bei
+        # zu kleinem Fenster den gesamten Platz beanspruchen und die Buttons aus
+        # dem sichtbaren Bereich drängen. So bleiben sie immer unten sichtbar,
+        # das Notebook bekommt nur den Rest.
+        #
         # Nur zwei Buttons: Speichern übernimmt+persistiert alle Änderungen,
         # Abbrechen verwirft den kompletten Draft (inkl. nicht gespeicherter
         # Provider-Test-Ergebnisse). Es gibt bewusst kein „Übernehmen" mehr —
         # nichts wird wirksam, bevor Speichern gedrückt wurde.
         btn_bar = ttk.Frame(self._win)
-        btn_bar.pack(fill="x", padx=10, pady=10)
+        btn_bar.pack(side="bottom", fill="x", padx=10, pady=10)
         self._save_btn = ttk.Button(btn_bar, text=t("settings.button.save"), command=self._on_save)
         self._save_btn.pack(side="right", padx=4)
         ttk.Button(btn_bar, text=t("settings.button.cancel"), command=self._on_cancel).pack(side="right", padx=4)
+
+        self._error_var = tk.StringVar()
+        ttk.Label(self._win, textvariable=self._error_var, foreground="#c0392b").pack(
+            side="bottom", anchor="w", padx=12
+        )
+
+        self.notebook.pack(side="top", fill="both", expand=True, padx=10, pady=(10, 0))
+
+        # Fenstergröße aus dem tatsächlichen Platzbedarf ableiten statt fest
+        # 640x540 — sonst schneidet der höchste Tab (LLM) den unteren Bereich ab.
+        # Nach oben auf die Arbeitsfläche begrenzt, minsize hält die Buttonleiste
+        # auch beim manuellen Verkleinern sichtbar.
+        self._win.update_idletasks()
+        # Platz fuer die Scrollbar mitreservieren, damit ihr Erscheinen den
+        # Inhalt nicht seitlich beschneidet.
+        req_w = max(640, self._win.winfo_reqwidth() + 18)
+        req_h = self._win.winfo_reqheight()
+        max_h = self._win.winfo_screenheight() - 100
+        win_h = min(req_h, max_h)
+        self._win.geometry(f"{req_w}x{win_h}")
+        # Mindestbreite = Inhaltsbreite: vertikal wird bei Bedarf gescrollt,
+        # horizontal soll nie etwas abgeschnitten werden.
+        self._win.minsize(req_w, min(360, win_h))
 
         # Sichtbarkeit + Fokus erzwingen (Parent kann ein versteckter
         # overrideredirect-Root sein); grab_set() erst NACH dem Mappen,
