@@ -158,3 +158,9 @@ Key obligations for downstream distributors of VOCIX:
 * VOCIX logo, icon set and landing-page artwork: © 2026 Jens Fricke / RTF22,
   all rights reserved; redistributed under the project's MIT License for use
   together with VOCIX.
+
+## Landing-page fonts (vocix.de)
+
+* Bangers, Nunito and JetBrains Mono are self-hosted in `docs/assets/fonts/` (WOFF2 files from Fontsource).
+  All three are licensed under the SIL Open Font License 1.1; the full license texts with the copyright
+  notices are in `docs/assets/fonts/OFL-*.txt`.

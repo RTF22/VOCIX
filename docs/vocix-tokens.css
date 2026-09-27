@@ -4,7 +4,7 @@
    halftone textures, Bangers display + Nunito body.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+/* Schriften: selbst gehostet in assets/fonts/fonts.css (von den Seiten eingebunden), nicht von Google. */
 
 /* ── Base Color Tokens ─────────────────────────────────── */
 :root {
