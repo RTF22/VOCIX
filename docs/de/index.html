@@ -1,24 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VOCIX — Voice Capture & Intelligent eXpression</title>
-<meta name="description" content="VOCIX — local voice dictation for Windows 11 with global hotkey. Whisper STT offline + optional Claude text processing. 100% free and open source.">
-<meta property="og:title" content="VOCIX — Voice Capture & Intelligent eXpression">
-<meta property="og:description" content="Local voice dictation for Windows. Push-to-talk with Pause, offline Whisper STT, optional translation to English, three text modes. Portable, free, open source.">
-<link rel="canonical" href="https://vocix.de/">
+<title>VOCIX – Kostenlose Offline-Diktiersoftware für Windows 10 und 11</title>
+<meta name="description" content="Spracheingabe für Windows ohne Cloud: Pause-Taste halten, sprechen, loslassen – der Text erscheint in jedem Programm. Offline-Spracherkennung mit Whisper, kostenlos und Open Source.">
+<meta property="og:title" content="VOCIX – Offline-Diktat für Windows">
+<meta property="og:description" content="Lokale Spracheingabe für Windows: Push-to-Talk mit der Pause-Taste, Whisper-Spracherkennung offline, drei Textmodi. Portabel, kostenlos, Open Source.">
+<link rel="canonical" href="https://vocix.de/de/">
 <link rel="alternate" hreflang="en" href="https://vocix.de/">
 <link rel="alternate" hreflang="de" href="https://vocix.de/de/">
 <link rel="alternate" hreflang="x-default" href="https://vocix.de/">
 <meta property="og:image" content="https://vocix.de/assets/vocix-logo-badge.jpg">
-<meta property="og:url" content="https://vocix.de/">
+<meta property="og:url" content="https://vocix.de/de/">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="en_US">
+<meta property="og:locale" content="de_DE">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/svg+xml" href="assets/vocix-logo.svg">
+<link rel="icon" type="image/svg+xml" href="../assets/vocix-logo.svg">
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vocix-tokens.css">
+<link rel="stylesheet" href="../vocix-tokens.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -231,13 +231,13 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
 <nav>
   <div class="nav-logo"><span class="v">V</span><span class="o">O</span><span class="c">C</span><span class="i">I</span><span class="x">X</span></div>
   <div class="nav-links">
-    <a class="nav-link" href="#how" data-i18n="nav_how">How it Works</a>
-    <a class="nav-link" href="#modes" data-i18n="nav_modes">Modes</a>
+    <a class="nav-link" href="#how" data-i18n="nav_how">So funktioniert's</a>
+    <a class="nav-link" href="#modes" data-i18n="nav_modes">Modi</a>
     <a class="nav-link" href="#features" data-i18n="nav_features">Features</a>
     <a class="nav-link" href="#opensource" data-i18n="nav_oss">Open Source</a>
     <div class="lang-toggle">
-      <a class="lang-btn active" href="./" hreflang="en" lang="en" aria-current="page">EN</a>
-      <a class="lang-btn" href="de/" hreflang="de" lang="de">DE</a>
+      <a class="lang-btn" href="../" hreflang="en" lang="en">EN</a>
+      <a class="lang-btn active" href="./" hreflang="de" lang="de" aria-current="page">DE</a>
     </div>
     <a class="btn-nav" href="#download" data-i18n="nav_download">Download</a>
   </div>
@@ -248,28 +248,28 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
   <div class="hero-rays"></div>
   <div class="hero-inner">
     <div class="hero-card">
-      <div class="hero-free-badge" data-i18n="hero_badge">100% FREE &amp; OPEN SOURCE</div>
+      <div class="hero-free-badge" data-i18n="hero_badge">100% KOSTENLOS &amp; OPEN SOURCE</div>
       <div class="hero-wordmark"><span class="v">V</span><span class="o">O</span><span class="c">C</span><span class="i">I</span><span class="x">X</span></div>
       <div class="hero-tagline-full">
         <span class="v">V</span><span class="tl-o">O</span>ice <span class="c">C</span>apture &amp; <span class="i">I</span>ntelligent e<span class="tl-x">X</span>pression
       </div>
-      <p class="hero-desc" style="color: rgb(30, 47, 64);" data-i18n="hero_desc">Local voice dictation for Windows with intelligent text processing. Push-to-talk with <strong>Pause</strong>, Whisper STT offline — text inserted right at your cursor.</p>
+      <p class="hero-desc" style="color: rgb(30, 47, 64);" data-i18n="hero_desc">Lokale Spracheingabe für Windows mit intelligenter Textverarbeitung. Push-to-Talk mit <strong>Pause</strong>, Whisper STT komplett offline — Dein gesprochener Text wird direkt an der Cursorposition eingefügt.</p>
       <div class="hero-ctas">
         <a class="btn-primary" href="#download">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span data-i18n="hero_cta_dl">Download for Windows</span>
+          <span data-i18n="hero_cta_dl">Für Windows herunterladen</span>
         </a>
         <a class="btn-ghost" href="https://github.com/RTF22/VOCIX" target="_blank">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-          <span data-i18n="hero_cta_gh">View on GitHub</span>
+          <span data-i18n="hero_cta_gh">Auf GitHub ansehen</span>
         </a>
       </div>
       <div class="hero-pills">
         <span class="pill">Windows 10/11</span>
         <span class="pill" data-i18n="pill_portable">Portable App</span>
-        <span class="pill" data-i18n="pill_gpu">GPU Accelerated</span>
+        <span class="pill" data-i18n="pill_gpu">GPU-Beschleunigung</span>
         <span class="pill" data-i18n="pill_offline">100% Offline STT</span>
-        <span class="pill" data-i18n="mit_license">MIT License</span>
+        <span class="pill" data-i18n="mit_license">MIT-Lizenz</span>
         <span class="pill">Whisper AI</span>
         <span class="pill">Claude-powered</span>
         <span class="pill" data-i18n="pill_ptt">Pause Push-to-Talk</span>
@@ -281,27 +281,27 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
 <!-- HOW IT WORKS -->
 <section id="how">
   <div class="section-inner">
-    <div class="section-label" data-i18n="how_label">Getting Started</div>
-    <div class="section-title" data-i18n="how_title">How It Works</div>
-    <p class="section-sub" data-i18n="how_sub">Three steps. No cloud. No subscription. No nonsense.</p>
+    <div class="section-label" data-i18n="how_label">Erste Schritte</div>
+    <div class="section-title" data-i18n="how_title">So funktioniert's</div>
+    <p class="section-sub" data-i18n="how_sub">Drei Schritte. Keine Cloud. Kein Abo. Kein Schnickschnack.</p>
     <div class="steps-row">
       <div class="step-card">
         <div class="step-num">1</div>
         <div class="step-key">Pause</div>
-        <div class="step-title" data-i18n="step1_title">Hold to Record</div>
-        <p class="step-desc" data-i18n="step1_desc">Hold <code>Pause</code> from anywhere on Windows. The microphone activates instantly — VOCIX lives in the system tray and is always ready.</p>
+        <div class="step-title" data-i18n="step1_title">Halten zum Aufnehmen</div>
+        <p class="step-desc" data-i18n="step1_desc"><code>Pause</code> von überall in Windows gedrückt halten. Das Mikrofon aktiviert sich sofort — VOCIX läuft im System-Tray und ist immer bereit.</p>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
         <span class="step-icon">🎙</span>
-        <div class="step-title" data-i18n="step2_title">Speak Naturally</div>
-        <p class="step-desc" data-i18n="step2_desc">Talk normally. Release <code>Pause</code> when done. Whisper transcribes your speech locally — nothing ever leaves your machine.</p>
+        <div class="step-title" data-i18n="step2_title">Natürlich sprechen</div>
+        <p class="step-desc" data-i18n="step2_desc">Einfach sprechen. <code>Pause</code> loslassen, wenn fertig. Whisper transkribiert die Sprache lokal — nichts verlässt den eigenen Rechner.</p>
       </div>
       <div class="step-card">
         <div class="step-num">3</div>
         <span class="step-icon">⚡</span>
-        <div class="step-title" data-i18n="step3_title">Text Inserted</div>
-        <p class="step-desc" data-i18n="step3_desc">Processed text appears right at your cursor, in any application — email, browser, IDE, document. No paste required.</p>
+        <div class="step-title" data-i18n="step3_title">Text wird eingefügt</div>
+        <p class="step-desc" data-i18n="step3_desc">Der verarbeitete Text erscheint direkt an der Cursorposition — in jeder Anwendung: E-Mail, Browser, IDE, Dokument. Kein Einfügen nötig.</p>
       </div>
     </div>
   </div>
@@ -310,9 +310,9 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
 <!-- THREE MODES -->
 <section id="modes">
   <div class="section-inner">
-    <div class="section-label" data-i18n="modes_label">Intelligent Processing</div>
-    <div class="section-title" data-i18n="modes_title">Three Modes</div>
-    <p class="section-sub" data-i18n="modes_sub">Choose how your speech gets transformed before it hits the page. Switch modes instantly with keyboard shortcuts.</p>
+    <div class="section-label" data-i18n="modes_label">Intelligente Verarbeitung</div>
+    <div class="section-title" data-i18n="modes_title">Drei Modi</div>
+    <p class="section-sub" data-i18n="modes_sub">Wählen, wie Sprache vor dem Einfügen umgewandelt wird. Modi mit Tastenkürzel sofort wechseln.</p>
     <div class="modes-grid">
       <!-- Clean -->
       <div class="mode-card">
@@ -321,15 +321,15 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
             <div class="mode-letter-badge" style="background: var(--color-clean-dark);">A</div>
             <div class="mode-name">Clean</div>
           </div>
-          <span class="mode-hotkey">Ctrl+Shift+1 &nbsp;·&nbsp; <span data-i18n="mode_offline">Fully Offline</span></span>
+          <span class="mode-hotkey">Ctrl+Shift+1 &nbsp;·&nbsp; <span data-i18n="mode_offline">Vollständig Offline</span></span>
         </div>
         <div class="mode-body">
-          <p class="mode-desc" data-i18n="clean_desc">Strip filler words and light corrections — preserves your meaning, removes "um", "uh", false starts. Runs 100% locally, zero latency.</p>
+          <p class="mode-desc" data-i18n="clean_desc">Füllwörter entfernen und leichte Korrekturen — Bedeutung bleibt erhalten, "ähm", "also" und Versprecher werden gelöscht. Läuft 100% lokal, null Latenz.</p>
           <div class="mode-example">
-            <div class="mode-example-label" data-i18n="example_label">Before → After</div>
-            <span style="color:var(--fg-muted)" data-i18n="clean_before">"So um, I wanted to, uh, say that the meeting is… is tomorrow."</span>
+            <div class="mode-example-label" data-i18n="example_label">Vorher → Nachher</div>
+            <span style="color:var(--fg-muted)" data-i18n="clean_before">"Also ähm, ich wollte, äh, sagen dass das Meeting … morgen ist."</span>
             <br>↓<br>
-            <strong data-i18n="clean_after">"The meeting is tomorrow."</strong>
+            <strong data-i18n="clean_after">"Das Meeting ist morgen."</strong>
           </div>
         </div>
       </div>
@@ -343,12 +343,12 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
           <span class="mode-hotkey">Ctrl+Shift+2 &nbsp;·&nbsp; Claude AI</span>
         </div>
         <div class="mode-body">
-          <p class="mode-desc" data-i18n="business_desc">Rewrites your speech into professional, formal language suitable for email, reports, or client communication. Powered by Claude.</p>
+          <p class="mode-desc" data-i18n="business_desc">Schreibt Sprache in professionelle, formelle Sprache um — geeignet für E-Mails, Berichte oder Kundenkommunikation. Powered by Claude.</p>
           <div class="mode-example">
-            <div class="mode-example-label" data-i18n="example_label">Before → After</div>
-            <span style="color:var(--fg-muted)" data-i18n="business_before">"hey can you fix this bug it's been broken for ages"</span>
+            <div class="mode-example-label" data-i18n="example_label">Vorher → Nachher</div>
+            <span style="color:var(--fg-muted)" data-i18n="business_before">"kannst du den bug mal fixen der nervt schon ewig"</span>
             <br>↓<br>
-            <strong data-i18n="business_after">"I wanted to flag an ongoing issue that requires attention at your earliest convenience."</strong>
+            <strong data-i18n="business_after">"Ich möchte auf ein bestehendes Problem hinweisen, das baldmöglichst behoben werden sollte."</strong>
           </div>
         </div>
       </div>
@@ -362,12 +362,12 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
           <span class="mode-hotkey">Ctrl+Shift+3 &nbsp;·&nbsp; Claude AI</span>
         </div>
         <div class="mode-body">
-          <p class="mode-desc" data-i18n="rage_desc">De-escalates aggressive or frustrated speech into polite, firm communication. Preserve meaning, remove heat. Powered by Claude.</p>
+          <p class="mode-desc" data-i18n="rage_desc">Wandelt aggressive oder frustrierte Sprache in höfliche, bestimmte Kommunikation um. Bedeutung bleibt erhalten, der Ton wird sachlich. Powered by Claude.</p>
           <div class="mode-example">
-            <div class="mode-example-label" data-i18n="example_label">Before → After</div>
-            <span style="color:var(--fg-muted)" data-i18n="rage_before">"This is absolutely unacceptable, I'm furious about this delay!"</span>
+            <div class="mode-example-label" data-i18n="example_label">Vorher → Nachher</div>
+            <span style="color:var(--fg-muted)" data-i18n="rage_before">"Das ist absolut inakzeptabel, ich bin so wütend über diese Verzögerung!"</span>
             <br>↓<br>
-            <strong data-i18n="rage_after">"I'd like to express my concern regarding the delay and request an update."</strong>
+            <strong data-i18n="rage_after">"Ich möchte meine Bedenken bezüglich der Verzögerung äußern und um ein Update bitten."</strong>
           </div>
         </div>
       </div>
@@ -378,57 +378,57 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
 <!-- FEATURES -->
 <section id="features">
   <div class="section-inner">
-    <div class="section-label" data-i18n="feat_label">Why VOCIX</div>
-    <div class="section-title" data-i18n="feat_title">Built Right</div>
-    <p class="section-sub" data-i18n="feat_sub">No cloud lock-in, no monthly fee, no account required. VOCIX respects your privacy and your wallet.</p>
+    <div class="section-label" data-i18n="feat_label">Warum VOCIX</div>
+    <div class="section-title" data-i18n="feat_title">Durchdacht gebaut</div>
+    <p class="section-sub" data-i18n="feat_sub">Kein Cloud-Abo, keine monatlichen Kosten, kein Account. VOCIX respektiert Privatsphäre und Budget.</p>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon-box" style="background: var(--color-clean-light);">🔒</div>
         <div>
-          <div class="feature-title" data-i18n="feat1_title">100% Offline Speech-to-Text</div>
-          <p class="feature-desc" data-i18n="feat1_desc">faster-whisper runs fully on your machine. Your voice never leaves your computer. No API key, no internet, no privacy concerns. Model downloads once on first launch.</p>
+          <div class="feature-title" data-i18n="feat1_title">100% Offline Spracherkennung</div>
+          <p class="feature-desc" data-i18n="feat1_desc">faster-whisper läuft vollständig auf dem eigenen Rechner. Die Stimme verlässt den Computer nie. Kein API-Key, kein Internet. Modell wird beim ersten Start automatisch geladen.</p>
         </div>
       </div>
       <div class="feature-card">
         <div class="feature-icon-box" style="background: var(--color-yellow-highlight);">⌨️</div>
         <div>
-          <div class="feature-title" data-i18n="feat2_title">Works in Any App</div>
-          <p class="feature-desc" data-i18n="feat2_desc">Text is inserted at the cursor position in any Windows application — email clients, browsers, IDEs, Office apps, chat tools.</p>
+          <div class="feature-title" data-i18n="feat2_title">Funktioniert in jeder App</div>
+          <p class="feature-desc" data-i18n="feat2_desc">Text wird an der Cursorposition in jeder Windows-Anwendung eingefügt — E-Mail, Browser, IDE, Office, Chat.</p>
         </div>
       </div>
       <div class="feature-card">
         <div class="feature-icon-box" style="background: var(--color-business-light);">🌍</div>
         <div>
-          <div class="feature-title" data-i18n="feat3_title">Multilingual + Offline Translation</div>
-          <p class="feature-desc" data-i18n="feat3_desc">Speak any of ~50 Whisper-supported languages. Optional one-click offline translation to English — no API key needed. Full DE/EN UI switchable at runtime.</p>
+          <div class="feature-title" data-i18n="feat3_title">Mehrsprachig + Offline-Übersetzung</div>
+          <p class="feature-desc" data-i18n="feat3_desc">In einer der ~50 von Whisper unterstützten Sprachen sprechen. Optionale Offline-Übersetzung ins Englische per Klick — kein API-Key nötig. DE/EN-UI jederzeit umschaltbar.</p>
         </div>
       </div>
       <div class="feature-card">
         <div class="feature-icon-box" style="background: var(--color-rage-light);">📋</div>
         <div>
-          <div class="feature-title" data-i18n="feat4_title">History &amp; Snippet Expansion</div>
-          <p class="feature-desc" data-i18n="feat4_desc">The last 20 dictations are saved in the tray — click to re-insert. Define your own shortcuts like /sig or /adr that expand to full text before insertion.</p>
+          <div class="feature-title" data-i18n="feat4_title">Verlauf &amp; Snippet-Expansion</div>
+          <p class="feature-desc" data-i18n="feat4_desc">Die letzten 20 Diktate bleiben im Tray gespeichert — Klick fügt sie erneut ein. Eigene Kürzel wie /sig oder /adr werden vor dem Einfügen automatisch expandiert.</p>
         </div>
       </div>
       <div class="feature-card">
         <div class="feature-icon-box" style="background: #e0d9ff;">🤖</div>
         <div>
-          <div class="feature-title" data-i18n="feat5_title">Multi-Provider LLM</div>
-          <p class="feature-desc" data-i18n="feat5_desc">Business and Rage modes run on the LLM you choose: Anthropic Claude, any OpenAI-compatible API (OpenAI, Groq, OpenRouter, LM Studio …) or local Ollama models. Per-mode override — cloud where it matters, local where it counts.</p>
+          <div class="feature-title" data-i18n="feat5_title">Multi-Provider-LLM</div>
+          <p class="feature-desc" data-i18n="feat5_desc">Business- und Rage-Modus laufen auf dem LLM deiner Wahl: Anthropic Claude, beliebige OpenAI-kompatible API (OpenAI, Groq, OpenRouter, LM Studio …) oder lokale Ollama-Modelle. Pro Modus überschreibbar — Cloud wo's zählt, lokal wo's drauf ankommt.</p>
         </div>
       </div>
       <div class="feature-card">
         <div class="feature-icon-box" style="background: #fef9c3;">⚡</div>
         <div>
-          <div class="feature-title" data-i18n="feat6_title">GPU Acceleration &amp; Model Choice</div>
-          <p class="feature-desc" data-i18n="feat6_desc">Choose your Whisper model (tiny → large-v3-turbo). GPU mode auto-detects CUDA — or force CPU/GPU via config. Speed vs. accuracy, your call.</p>
+          <div class="feature-title" data-i18n="feat6_title">GPU-Beschleunigung &amp; Modellauswahl</div>
+          <p class="feature-desc" data-i18n="feat6_desc">Whisper-Modell frei wählbar (tiny → large-v3-turbo). GPU-Modus erkennt CUDA automatisch — oder CPU/GPU per Konfig erzwingen. Geschwindigkeit vs. Genauigkeit, selbst entscheiden.</p>
         </div>
       </div>
       <div class="feature-card">
         <div class="feature-icon-box" style="background: #d1fae5;">💼</div>
         <div>
-          <div class="feature-title" data-i18n="feat7_title">Portable, winget &amp; Scoop</div>
-          <p class="feature-desc" data-i18n="feat7_desc">Install via <code>winget install RTF22.VOCIX</code>, Scoop, or just unzip and run — no admin rights, no registry. Auto-updates from the tray with SHA256 verification.</p>
+          <div class="feature-title" data-i18n="feat7_title">Portabel, winget &amp; Scoop</div>
+          <p class="feature-desc" data-i18n="feat7_desc">Per <code>winget install RTF22.VOCIX</code>, Scoop oder einfach entpacken und starten — keine Adminrechte, keine Registry. Auto-Update aus dem Tray mit SHA256-Prüfung.</p>
         </div>
       </div>
     </div>
@@ -438,18 +438,18 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
 <!-- OPEN SOURCE -->
 <section id="opensource">
   <div class="opensource-inner">
-    <div class="action-burst" data-i18n="oss_burst">FREE &amp; <span>OPEN</span><br>SOURCE!</div>
-    <p class="opensource-sub" data-i18n="oss_sub">VOCIX is MIT-licensed and lives on GitHub. Fork it, extend it, contribute to it — or just use it. No strings attached.</p>
+    <div class="action-burst" data-i18n="oss_burst">KOSTENLOS &amp; <span>OPEN</span><br>SOURCE!</div>
+    <p class="opensource-sub" data-i18n="oss_sub">VOCIX steht unter der MIT-Lizenz und lebt auf GitHub. Forken, erweitern, beitragen — oder einfach nutzen. Keine Bedingungen.</p>
     <div class="opensource-badges">
-      <div class="os-badge highlight" data-i18n="mit_license">MIT License</div>
-      <div class="os-badge" data-i18n="oss_b1">No Account Required</div>
-      <div class="os-badge" data-i18n="oss_b2">No Subscription</div>
-      <div class="os-badge" data-i18n="oss_b3">No Telemetry</div>
-      <div class="os-badge" data-i18n="oss_b4">Community-Driven</div>
+      <div class="os-badge highlight" data-i18n="mit_license">MIT-Lizenz</div>
+      <div class="os-badge" data-i18n="oss_b1">Kein Account nötig</div>
+      <div class="os-badge" data-i18n="oss_b2">Kein Abo</div>
+      <div class="os-badge" data-i18n="oss_b3">Kein Tracking</div>
+      <div class="os-badge" data-i18n="oss_b4">Community-getrieben</div>
     </div>
     <a class="btn-github" href="https://github.com/RTF22/VOCIX" target="_blank">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-      <span data-i18n="gh_btn">RTF22/VOCIX on GitHub</span>
+      <span data-i18n="gh_btn">RTF22/VOCIX auf GitHub</span>
     </a>
   </div>
 </section>
@@ -457,27 +457,27 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
 <!-- DOWNLOAD -->
 <section id="download">
   <div class="section-inner" style="text-align:center;">
-    <div class="section-label" data-i18n="dl_label">Get VOCIX</div>
+    <div class="section-label" data-i18n="dl_label">VOCIX holen</div>
     <div class="section-title" style="margin-bottom:40px;" data-i18n="dl_title">Download</div>
     <div class="download-box">
       <div class="download-header">
-        <div class="download-title" data-i18n="dl_box_title">VOCIX for Windows</div>
-        <div class="download-version" data-i18n="dl_version">Latest release · MIT License · Free forever</div>
+        <div class="download-title" data-i18n="dl_box_title">VOCIX für Windows</div>
+        <div class="download-version" data-i18n="dl_version">Neueste Version · MIT-Lizenz · Kostenlos für immer</div>
       </div>
       <div class="download-body">
         <ul class="req-list">
-          <li><span class="req-dot"></span><span data-i18n="req1">Windows 10 or Windows 11</span></li>
-          <li><span class="req-dot"></span><span data-i18n="req2">Microphone — any USB or built-in mic works</span></li>
-          <li><span class="req-dot"></span><span data-i18n="req3">Optional for Business &amp; Rage: Anthropic, OpenAI-compatible API, or local Ollama</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req1">Windows 10 oder Windows 11</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req2">Mikrofon — USB oder eingebaut, alles funktioniert</span></li>
+          <li><span class="req-dot"></span><span data-i18n="req3">Optional für Business &amp; Rage: Anthropic, OpenAI-kompatible API oder lokales Ollama</span></li>
         </ul>
         <div class="download-ctas">
           <a class="btn-primary" href="https://github.com/RTF22/VOCIX/releases" target="_blank">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span data-i18n="dl_btn">Download Latest Release</span>
+            <span data-i18n="dl_btn">Neueste Version herunterladen</span>
           </a>
           <a class="btn-ghost" href="https://github.com/RTF22/VOCIX" target="_blank">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-            <span data-i18n="src_btn">View Source</span>
+            <span data-i18n="src_btn">Quellcode ansehen</span>
           </a>
         </div>
       </div>
@@ -488,11 +488,11 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
 <!-- FOOTER -->
 <footer>
   <div class="footer-wordmark"><span class="v">V</span><span class="o">O</span><span class="c">C</span><span class="i">I</span><span class="x">X</span></div>
-  <div class="footer-copy" data-i18n="footer_copy">© 2026 RTF22 · MIT License · Free &amp; Open Source</div>
+  <div class="footer-copy" data-i18n="footer_copy">© 2026 RTF22 · MIT-Lizenz · Kostenlos &amp; Open Source</div>
   <div class="footer-links">
     <a class="footer-link" href="https://github.com/RTF22/VOCIX" target="_blank">GitHub</a>
-    <a class="footer-link" href="https://github.com/RTF22/VOCIX/releases" target="_blank" data-i18n="footer_releases">Releases</a>
-    <a class="footer-link" href="https://github.com/RTF22/VOCIX/blob/main/LICENSE" target="_blank" data-i18n="footer_license">License</a>
+    <a class="footer-link" href="https://github.com/RTF22/VOCIX/releases" target="_blank" data-i18n="footer_releases">Versionen</a>
+    <a class="footer-link" href="https://github.com/RTF22/VOCIX/blob/main/LICENSE" target="_blank" data-i18n="footer_license">Lizenz</a>
     <a class="footer-link" onclick="document.getElementById('impressum-modal').classList.add('open')" style="cursor:pointer;" data-i18n="footer_impressum">Impressum</a>
   </div>
 </footer>

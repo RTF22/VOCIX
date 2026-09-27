@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://vocix.de/</loc>
     <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vocix.de/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://vocix.de/de/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vocix.de/"/>
+  </url>
+  <url>
+    <loc>https://vocix.de/de/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vocix.de/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://vocix.de/de/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vocix.de/"/>
   </url>
 </urlset>
