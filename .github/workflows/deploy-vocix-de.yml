@@ -31,3 +31,5 @@ jobs:
             **/node_modules/**
             **/.DS_Store
             superpowers/**
+            google*.html
+            BingSiteAuth.xml
