@@ -1,0 +1,8 @@
+# robots.txt for https://vocix.de/
+# All crawlers welcome, including AI crawlers, so VOCIX can show up
+# in search results and AI answers alike.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://vocix.de/sitemap.xml

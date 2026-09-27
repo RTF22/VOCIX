@@ -1,8 +1,8 @@
 **🌐 [English](README.md) · [Deutsch](README.de.md)**
 
 <p align="center">
-  <a href="https://rtf22.github.io/VOCIX/">
-    <img src="https://img.shields.io/badge/%F0%9F%8C%90_Landing_Page-rtf22.github.io%2FVOCIX-1a3d8f?style=for-the-badge" alt="VOCIX Landing Page">
+  <a href="https://vocix.de/">
+    <img src="https://img.shields.io/badge/%F0%9F%8C%90_Landing_Page-vocix.de-1a3d8f?style=for-the-badge" alt="VOCIX Landing Page">
   </a>
 </p>
 
