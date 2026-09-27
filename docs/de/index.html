@@ -149,6 +149,12 @@ section { padding: 88px 24px; }
 
 /* HOW IT WORKS */
 #how { background: var(--color-panel); }
+.demo-frame { position: relative; max-width: 820px; margin: 0 auto 48px; border: 3px solid var(--color-ink); border-radius: var(--radius-md); box-shadow: 6px 6px 0 var(--color-ink); overflow: hidden; background: var(--color-brand-cobalt); line-height: 0; }
+.demo-frame video { width: 100%; height: auto; aspect-ratio: 16 / 9; display: block; }
+.demo-sound { position: absolute; left: 14px; bottom: 14px; display: none; align-items: center; gap: 8px; line-height: 1.2; font-family: var(--font-body); font-weight: 800; font-size: 14px; color: var(--color-ink); background: var(--color-yellow-highlight); border: 2.5px solid var(--color-ink); border-radius: var(--radius-sm); box-shadow: 3px 3px 0 var(--color-ink); padding: 6px 12px; cursor: pointer; }
+.demo-sound:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--color-ink); }
+.demo-sound .off, .demo-sound[aria-pressed="true"] .on { display: none; }
+.demo-sound[aria-pressed="true"] .off { display: inline; }
 .steps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .step-card { background: var(--color-bg-light); border: 3px solid var(--color-ink); border-radius: var(--radius-md); box-shadow: 5px 5px 0 var(--color-ink); padding: 28px 24px; position: relative; transition: transform 80ms, box-shadow 80ms; }
 .step-card:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--color-ink); }
@@ -289,6 +295,16 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
     <div class="section-label" data-i18n="how_label">Erste Schritte</div>
     <div class="section-title" data-i18n="how_title">So funktioniert's</div>
     <p class="section-sub" data-i18n="how_sub">Drei Schritte. Keine Cloud. Kein Abo. Kein Schnickschnack.</p>
+    <div class="demo-frame">
+      <video id="demo-video" autoplay muted loop playsinline preload="metadata" width="1280" height="720"
+             poster="../assets/demo/vocix-demo-de-poster.jpg"
+             aria-label="Animierte Illustration: Pause halten, sprechen, und VOCIX fügt den umformulierten Text an der Cursorposition in eine E-Mail ein">
+        <source src="../assets/demo/vocix-demo-de.mp4" type="video/mp4">
+      </video>
+      <button class="demo-sound" id="demo-sound" type="button" aria-pressed="false">
+        <span class="on" data-i18n="demo_sound_on">🔊 Ton an</span><span class="off" data-i18n="demo_sound_off">🔇 Ton aus</span>
+      </button>
+    </div>
     <div class="steps-row">
       <div class="step-card">
         <div class="step-num">1</div>
@@ -568,6 +584,24 @@ const observer = new MutationObserver(() => {
   modal.style.display = modal.classList.contains('open') ? 'flex' : 'none';
 });
 observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+
+// Demo-Video: bei „Bewegung reduzieren“ nicht automatisch abspielen
+const demo = document.getElementById('demo-video');
+if (demo && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  demo.removeAttribute('autoplay'); demo.pause(); demo.controls = true;
+}
+
+// Ton an/aus: Browser spielen Videos nur stumm automatisch ab. Beim Einschalten
+// von vorn beginnen, damit der gesprochene Satz vollständig zu hören ist.
+const soundBtn = document.getElementById('demo-sound');
+if (demo && soundBtn) {
+  soundBtn.style.display = 'inline-flex';
+  soundBtn.addEventListener('click', () => {
+    demo.muted = !demo.muted;
+    soundBtn.setAttribute('aria-pressed', String(!demo.muted));
+    if (!demo.muted) { demo.currentTime = 0; demo.play(); }
+  });
+}
 </script>
 
 </body>

@@ -92,8 +92,15 @@ def build(en_page: str, data: dict) -> str:
         '<link rel="canonical" href="https://vocix.de/de/">',
     )
 
+    # Sprachabhängige Dateinamen und Attribute (z. B. Demo-Video, aria-label).
+    for old, new in data.get("replace", []):
+        if old not in page:
+            raise ValueError(f"Ersetzung nicht gefunden: {old}")
+        page = page.replace(old, new)
+
     # Relative Pfade: die deutsche Seite liegt eine Ebene tiefer.
-    page = page.replace('href="assets/', 'href="../assets/')
+    for attr_name in ("href", "src", "poster"):
+        page = page.replace(f'{attr_name}="assets/', f'{attr_name}="../assets/')
     page = _replace_exact(page, 'href="vocix-tokens.css"', 'href="../vocix-tokens.css"')
 
     # Sprachschalter: aktiven Zustand tauschen, Links relativ zur neuen Ebene.

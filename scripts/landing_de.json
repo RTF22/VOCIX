@@ -80,6 +80,18 @@
     "mit_license": "MIT-Lizenz",
     "gh_btn": "RTF22/VOCIX auf GitHub",
     "footer_license": "Lizenz",
-    "h1_suffix": " — kostenlose Offline-Diktiersoftware für Windows"
-  }
+    "h1_suffix": " — kostenlose Offline-Diktiersoftware für Windows",
+    "demo_sound_on": "🔊 Ton an",
+    "demo_sound_off": "🔇 Ton aus"
+  },
+  "replace": [
+    [
+      "vocix-demo-en",
+      "vocix-demo-de"
+    ],
+    [
+      "Animated illustration: hold Pause, speak, and VOCIX inserts the rewritten text into an email at the cursor",
+      "Animierte Illustration: Pause halten, sprechen, und VOCIX fügt den umformulierten Text an der Cursorposition in eine E-Mail ein"
+    ]
+  ]
 }

@@ -15,6 +15,10 @@
 
 Local voice dictation app for Windows 11 with a global hotkey. Capture speech, transcribe it, transform it intelligently, and insert it system-wide at the cursor position — in any application (browser, Word, Outlook, IDEs, etc.).
 
+<p align="center">
+  <img src="docs/assets/demo/vocix-demo-en.gif" alt="Animated illustration: hold Pause, speak, and VOCIX inserts the rewritten text at the cursor" width="800">
+</p>
+
 ## Features
 
 - **Push-to-Talk** via global hotkey (default: `Pause`)
