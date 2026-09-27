@@ -296,7 +296,7 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
     <div class="section-title" data-i18n="how_title">How It Works</div>
     <p class="section-sub" data-i18n="how_sub">Three steps. No cloud. No subscription. No nonsense.</p>
     <div class="demo-frame">
-      <video id="demo-video" autoplay muted loop playsinline preload="metadata" width="1280" height="720"
+      <video id="demo-video" autoplay muted loop playsinline controls preload="metadata" width="1280" height="720"
              poster="assets/demo/vocix-demo-en-poster.jpg"
              aria-label="Animated illustration: hold Pause, speak, and VOCIX inserts the rewritten text into an email at the cursor">
         <source src="assets/demo/vocix-demo-en.mp4" type="video/mp4">
@@ -585,16 +585,20 @@ const observer = new MutationObserver(() => {
 });
 observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
 
-// Demo-Video: bei „Bewegung reduzieren“ nicht automatisch abspielen
+// Demo-Video: Ohne JavaScript (z. B. NoScript) bleiben die Browser-Bedienelemente
+// sichtbar, damit sich der Ton einschalten lässt. Mit JavaScript ersetzt der
+// „Ton an“-Knopf sie; bei „Bewegung reduzieren“ kein Autoplay, Bedienelemente bleiben.
 const demo = document.getElementById('demo-video');
-if (demo && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  demo.removeAttribute('autoplay'); demo.pause(); demo.controls = true;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (demo && reducedMotion) {
+  demo.removeAttribute('autoplay'); demo.pause();
 }
 
 // Ton an/aus: Browser spielen Videos nur stumm automatisch ab. Beim Einschalten
 // von vorn beginnen, damit der gesprochene Satz vollständig zu hören ist.
 const soundBtn = document.getElementById('demo-sound');
-if (demo && soundBtn) {
+if (demo && soundBtn && !reducedMotion) {
+  demo.controls = false;
   soundBtn.style.display = 'inline-flex';
   soundBtn.addEventListener('click', () => {
     demo.muted = !demo.muted;
