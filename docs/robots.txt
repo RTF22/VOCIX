@@ -4,5 +4,6 @@
 
 User-agent: *
 Allow: /
+Disallow: /assets/adresse.css
 
 Sitemap: https://vocix.de/sitemap.xml

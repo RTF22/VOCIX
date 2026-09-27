@@ -19,6 +19,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/vocix-logo.svg">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
 <link rel="stylesheet" href="vocix-tokens.css">
+<link rel="stylesheet" href="assets/adresse.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -514,7 +515,8 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
     <a class="footer-link" href="https://github.com/RTF22/VOCIX" target="_blank">GitHub</a>
     <a class="footer-link" href="https://github.com/RTF22/VOCIX/releases" target="_blank" data-i18n="footer_releases">Releases</a>
     <a class="footer-link" href="https://github.com/RTF22/VOCIX/blob/main/LICENSE" target="_blank" data-i18n="footer_license">License</a>
-    <a class="footer-link" onclick="document.getElementById('impressum-modal').classList.add('open')" style="cursor:pointer;" data-i18n="footer_impressum">Impressum</a>
+    <a class="footer-link" href="https://jensfricke.com/en/legal-notice/" onclick="event.preventDefault(); document.getElementById('impressum-modal').classList.add('open')" data-i18n="footer_impressum">Legal notice</a>
+    <a class="footer-link" href="https://jensfricke.com/en/privacy/vocix/" data-i18n="footer_datenschutz">Privacy</a>
   </div>
 </footer>
 
@@ -544,33 +546,27 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
       box-shadow:2px 2px 0 rgba(0,0,0,0.3);
     ">✕</button>
 
-    <div style="font-family:var(--font-display);font-size:32px;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:24px;border-bottom:2px solid var(--color-ink);padding-bottom:12px;">Impressum</div>
+    <div style="font-family:var(--font-display);font-size:32px;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:24px;border-bottom:2px solid var(--color-ink);padding-bottom:12px;" data-i18n="imp_titel">Legal notice</div>
 
     <div style="font-family:var(--font-body);font-size:14px;line-height:1.7;color:var(--color-ink-soft);">
-      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Angaben gemäß § 5 TMG</p>
-      <p style="margin-bottom:20px;font-weight:700;color:var(--color-ink);">
-        Jens Fricke<br>
-        Untere Hainbachstr. 8<br>
-        35216 Biedenkopf
-      </p>
-
-      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Kontakt</p>
-      <p style="margin-bottom:20px;">E-Mail: <a href="mailto:aijourney22@gmail.com" style="color:var(--color-business);font-weight:700;">aijourney22@gmail.com</a></p>
-
-      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</p>
-      <p style="margin-bottom:20px;">Jens Fricke, Untere Hainbachstr. 8, 35216 Biedenkopf</p>
-
-      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Haftung für Inhalte</p>
-      <p style="margin-bottom:20px;">Die Inhalte dieser Website wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann jedoch keine Gewähr übernommen werden.</p>
-
-      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Haftung für Links</p>
-      <p style="margin-bottom:20px;">Diese Website enthält Links zu externen Websites Dritter, insbesondere zum Hosting-Dienst GitHub. Auf deren Inhalte habe ich keinen Einfluss und übernehme daher keine Gewähr für diese fremden Inhalte.</p>
-
-      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Urheberrecht und Open Source</p>
-      <p style="margin-bottom:20px;">Die auf dieser Website präsentierte Software „VOCIX" ist ein Open-Source-Projekt und wird über GitHub bereitgestellt. Es gelten die jeweiligen Lizenzbedingungen des Projekts. Inhalte dieser Website unterliegen – soweit nicht anders gekennzeichnet – dem deutschen Urheberrecht.</p>
-
-      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Hinweis zur Nutzung der Software</p>
-      <p>Die Nutzung der bereitgestellten Software erfolgt auf eigene Verantwortung. Es wird keine Haftung für Schäden übernommen, die aus der Nutzung der Software entstehen.</p>
+      <p style="margin-bottom:20px;font-style:italic;color:var(--fg-muted);">This translation is provided for convenience; the German version is legally binding.</p>
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;" data-i18n="imp_angaben">Information pursuant to § 5 DDG and § 18(1) MStV</p>
+      <p style="margin-bottom:20px;font-weight:700;color:var(--color-ink);" data-i18n="imp_anschrift">Jens Fricke<br><span class="anschrift-strasse"></span><br><span class="anschrift-ort"></span><br>Germany</p>
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;" data-i18n="imp_kontakt">Contact</p>
+      <p style="margin-bottom:20px;"><span data-i18n="imp_email">E-mail</span>: <a href="mailto:kontakt@jensfricke.com" style="color:var(--color-business);font-weight:700;">kontakt@jensfricke.com</a></p>
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;" data-i18n="imp_verantwortlich">Responsible for content pursuant to § 18(2) MStV</p>
+      <p style="margin-bottom:20px;" data-i18n="imp_verantwortlich_text">Jens Fricke, address as above.</p>
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;" data-i18n="imp_geltung">Scope</p>
+      <p style="margin-bottom:6px;" data-i18n="imp_geltung_text">This legal notice applies to the following websites:</p>
+      <p style="margin-bottom:20px;"><a href="https://jensfricke.com/" style="color:var(--color-business);font-weight:700;">jensfricke.com</a> · <a href="https://vocix.de/" style="color:var(--color-business);font-weight:700;">vocix.de</a> · <a href="https://orrery3d.de/" style="color:var(--color-business);font-weight:700;">orrery3d.de</a></p>
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;" data-i18n="imp_privat">Private website</p>
+      <p style="margin-bottom:20px;" data-i18n="imp_privat_text">I run these websites privately. What I publish here reflects my personal view and is not made on behalf of my employer.</p>
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;" data-i18n="imp_links">Links</p>
+      <p style="margin-bottom:20px;" data-i18n="imp_links_text">The operators of linked third-party websites are solely responsible for their content. If I become aware of any infringement, I will remove the link concerned without delay.</p>
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;" data-i18n="imp_urheber">Copyright</p>
+      <p style="margin-bottom:20px;" data-i18n="imp_urheber_text">Texts and design of these websites are protected by copyright unless stated otherwise. The source code of the projects is licensed as stated in the respective repository.</p>
+      <p style="margin-bottom:6px;color:var(--fg-muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;" data-i18n="imp_datenschutz">Privacy</p>
+      <p><a href="https://jensfricke.com/en/privacy/vocix/" style="color:var(--color-business);font-weight:700;" data-i18n="imp_datenschutz_link">Privacy policy for vocix.de</a></p>
     </div>
   </div>
 </div>
