@@ -98,8 +98,13 @@ nav {
   padding: 4px 16px; color: var(--color-ink); transform: rotate(2deg);
 }
 .hero-wordmark {
-  font-family: var(--font-display); font-size: clamp(80px, 14vw, 140px);
+  font-family: var(--font-display); font-weight: normal; font-size: clamp(80px, 14vw, 140px);
   letter-spacing: 0.05em; line-height: 0.9; -webkit-text-stroke: 3px var(--color-ink); margin-bottom: 8px;
+}
+/* Für Screenreader und Suchmaschinen sichtbar, optisch ausgeblendet */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 .hero-wordmark .v { color: var(--color-letter-v); }
 .hero-wordmark .o { color: var(--color-letter-o); }
@@ -249,7 +254,7 @@ footer { background: var(--color-brand-navy); border-top: 3px solid var(--color-
   <div class="hero-inner">
     <div class="hero-card">
       <div class="hero-free-badge" data-i18n="hero_badge">100% KOSTENLOS &amp; OPEN SOURCE</div>
-      <div class="hero-wordmark"><span class="v">V</span><span class="o">O</span><span class="c">C</span><span class="i">I</span><span class="x">X</span></div>
+      <h1 class="hero-wordmark"><span class="v">V</span><span class="o">O</span><span class="c">C</span><span class="i">I</span><span class="x">X</span><span class="visually-hidden" data-i18n="h1_suffix"> — kostenlose Offline-Diktiersoftware für Windows</span></h1>
       <div class="hero-tagline-full">
         <span class="v">V</span><span class="tl-o">O</span>ice <span class="c">C</span>apture &amp; <span class="i">I</span>ntelligent e<span class="tl-x">X</span>pression
       </div>

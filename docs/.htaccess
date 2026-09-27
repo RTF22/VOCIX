@@ -1,0 +1,11 @@
+# vocix.de — Apache-Konfiguration (All-Inkl-Webspace)
+# Wird mit docs/ per FTP-Deploy hochgeladen.
+
+# Fehlende Seiten: echte 404 mit eigener Seite statt 500
+ErrorDocument 404 /404.html
+
+# http -> https und www -> Apex in einem Schritt (301)
+RewriteEngine On
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} ^www\. [NC]
+RewriteRule ^ https://vocix.de%{REQUEST_URI} [R=301,L]
